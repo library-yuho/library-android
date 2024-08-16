@@ -1,12 +1,10 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.dagger.hilt.android)
-    id(libs.plugins.jetbrains.kotlin.kapt.get().pluginId)
 }
 
 android {
-    namespace = "com.project.ibooku.domain"
+    namespace = "com.project.ibooku.base"
     compileSdk = 34
 
     defaultConfig {
@@ -25,35 +23,22 @@ android {
             )
         }
     }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
-    kapt {
-        correctErrorTypes = true
-    }
-
-    hilt{
-        enableAggregatingTask = false
     }
 }
 
 dependencies {
-    implementation(project(":core"))
-
+    implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.core.ktx)
+    implementation(platform(libs.kotlin.bom))
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
 }
