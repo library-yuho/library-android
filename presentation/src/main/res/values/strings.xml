@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">I book u</string>
+    <string name="nav_home">홈</string>
+    <string name="nav_menu">메뉴</string>
+
+
+    <string name="home_header_text"># 도서를 위한 모든 것, I Book U</string>
+    <string name="home_header_search_place_holder">찾고 있는 도서가 있나요?</string>
+    <string name="home_body_review">리뷰를 공유해보세요! 💬</string>
+    <string name="home_body_review_write_title">리뷰 남기러 가기</string>
+    <string name="home_body_review_write_desc">내 책을 다른 사람에게도 추천하고 싶어!</string>
+    <string name="home_body_review_read_title">주변 리뷰 살펴보기</string>
+    <string name="home_body_review_read_desc1">사람들은 어떤 책을 읽고 있을까?</string>
+    <string name="home_body_review_read_desc3">근처 독서광들이 요즘 읽는 책은?</string>
+    <string name="home_body_review_read_desc2">내 이웃들은 무슨 책을 읽고 있을까?</string>
+    <string name="home_body_popular_book">이 도서가 인기있어요 📕</string>
+    <string name="home_body_popular_book_see_details">자세히 보기</string>
+    <string name="home_body_help">도움이 필요하신가요? 😵‍💫 </string>
+    <string name="home_body_help_guide_title">처음이신가요?</string>
+    <string name="home_body_help_guide_desc">사용 가이드 보러가기</string>
+    <string name="home_body_help_homepage_title">국립 중앙 도서관</string>
+    <string name="home_body_help_homepage_desc">홈페이지 방문하기</string>
+    <string name="home_body_help_cs_title">고객센터</string>
+    <string name="home_body_help_cs_desc">FAQ, 1:1 문의</string>
+
+
+    <string name="search_book_placeholder">도서명, 글쓴이, 출판사로 검색</string>
+    <string name="search_book_recent_keyword_title">최근에 검색했어요 🔎</string>
+    <string name="search_book_popular_keyword_title">이번 달 인기 키워드에요 ✨</string>
+
+
+</resources>
