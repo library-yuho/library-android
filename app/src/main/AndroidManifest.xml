@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".IbuApplication"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
@@ -12,8 +13,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Ibooku"
         tools:targetApi="31">
+
         <activity
-            android:name=".MainActivity"
+            android:name="com.project.ibooku.presentation.ui.screens.home.ActivityHome"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Ibooku">
@@ -23,6 +25,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="com.project.ibooku.presentation.ui.screens.search.ActivityBookSearch"
+            android:exported="true" />
+
     </application>
 
 </manifest>
