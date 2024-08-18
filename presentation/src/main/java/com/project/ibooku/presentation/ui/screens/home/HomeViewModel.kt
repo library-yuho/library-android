@@ -52,19 +52,16 @@ class HomeViewModel @Inject constructor(
             ).collect{ result ->
                 when(result){
                     is Resources.Loading -> {
-                        Log.d("viewmodel","Loading = ${result.isLoading}")
                         homeState = homeState.copy(isLoading = result.isLoading)
                     }
                     is Resources.Success -> {
                         result.data?.let{ books ->
-                            Log.d("viewmodel","Books: $books")
                             homeState = homeState.copy(
                                 popularBooks = books
                             )
                         }
                     }
                     is Resources.Error -> {
-                        Log.d("viewmodel","Error")
                         homeState = homeState.copy(isLoading = false)
                     }
                 }
