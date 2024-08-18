@@ -65,7 +65,7 @@ fun StatusBarColorsTheme(statusBarColor: Color? = null, isDarkTheme: Boolean = i
                 statusBarColor?.toArgb() ?: if (isDarkTheme) Black.toArgb() else White.toArgb()
 
             WindowCompat.getInsetsController(window, view)
-                .isAppearanceLightStatusBars = !isDarkTheme
+                .isAppearanceLightStatusBars = if(statusBarColor != null) false else !isDarkTheme
             WindowCompat.getInsetsController(window, view)
                 .isAppearanceLightNavigationBars = !isDarkTheme
         }
