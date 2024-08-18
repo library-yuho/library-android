@@ -15,7 +15,7 @@
         tools:targetApi="31">
 
         <activity
-            android:name="com.project.ibooku.presentation.ui.screens.home.ActivityHome"
+            android:name="com.project.ibooku.presentation.ui.ActivityHome"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.Ibooku">
@@ -25,10 +25,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name="com.project.ibooku.presentation.ui.screens.search.ActivityBookSearch"
-            android:exported="true" />
 
     </application>
 
