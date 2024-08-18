@@ -13,6 +13,7 @@ val Pink40 = Color(0xFF7D5260)
 val SkyBlue10 = Color(0xFF87CEFA)
 val SkyBlue20 = Color(0xFF4784F7)
 val White = Color(0xFFFFFFFF)
+val Black = Color(0xFF000000)
 
 val PlaceHolderColor = Color(0xFFBABABA)
 
