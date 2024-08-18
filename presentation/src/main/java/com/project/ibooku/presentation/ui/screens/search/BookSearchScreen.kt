@@ -53,7 +53,7 @@ import com.project.ibooku.presentation.ui.theme.White
 
 @Composable
 fun BookSearchScreen(navController: NavHostController) {
-    StatusBarColorsTheme(statusBarColor = SkyBlue10)
+    StatusBarColorsTheme()
 
     IbookuTheme {
         Scaffold(modifier = Modifier.fillMaxSize()) {
