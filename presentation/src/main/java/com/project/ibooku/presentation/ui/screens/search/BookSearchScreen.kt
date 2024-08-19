@@ -1,8 +1,5 @@
 package com.project.ibooku.presentation.ui.screens.search
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,24 +41,41 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.project.ibooku.presentation.R
+import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.theme.Gray20
 import com.project.ibooku.presentation.ui.theme.Gray50
 import com.project.ibooku.presentation.ui.theme.IbookuTheme
 import com.project.ibooku.presentation.ui.theme.PlaceHolderColor
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
 import com.project.ibooku.presentation.ui.theme.White
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
-class ActivityBookSearch : ComponentActivity() {
+@Composable
+fun BookSearchScreen(navController: NavHostController) {
+    StatusBarColorsTheme()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    IbookuTheme {
+        Scaffold(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+            ) {
+                BookSearchScreenHeader(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                ){
+                    navController.popBackStack()
+                }
 
-        setContent {
-            IbookuTheme {
-                BookSearchScreen()
+
+                BookSearchBodyNoKeyword(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 20.dp, vertical = 15.dp)
+                )
             }
         }
     }
@@ -69,30 +83,29 @@ class ActivityBookSearch : ComponentActivity() {
 
 @Composable
 @Preview(showBackground = true)
-private fun BookSearchScreen() {
-    Scaffold(modifier = Modifier.fillMaxSize()) {
-        Column(
+fun BookSearchScreenPreview(){
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        BookSearchScreenHeader(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
-        ) {
-            BookSearchScreenHeader(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-            )
+                .fillMaxWidth()
+                .wrapContentHeight()
+        ){
 
-            BookSearchBodyNoKeyword(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 20.dp, vertical = 15.dp)
-            )
         }
+
+        BookSearchBodyNoKeyword(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 20.dp, vertical = 15.dp)
+        )
     }
 }
 
 @Composable
-private fun BookSearchScreenHeader(modifier: Modifier) {
+private fun BookSearchScreenHeader(modifier: Modifier, onBackPressed: () -> Unit) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -102,11 +115,11 @@ private fun BookSearchScreenHeader(modifier: Modifier) {
     ) {
         Row(
             modifier = modifier
-                .padding(top = 4.dp, bottom = 4.dp, start = 4.dp, end = 10.dp)
-                .background(White),
+                .background(White)
+                .padding(top = 4.dp, bottom = 4.dp, start = 4.dp, end = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { /*TODO*/ }) {
+            IconButton(onClick = { onBackPressed }) {
                 Icon(
                     modifier = Modifier.size(36.dp),
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,

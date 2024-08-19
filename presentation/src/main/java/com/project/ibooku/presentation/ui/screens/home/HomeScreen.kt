@@ -1,19 +1,13 @@
 package com.project.ibooku.presentation.ui.screens.home
 
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,34 +26,25 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -70,19 +55,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.project.ibooku.data.remote.UrlLink.CENTRAL_HOMEPAGE_URL
 import com.project.ibooku.domain.model.PopularBooksModel
 import com.project.ibooku.presentation.R
-import com.project.ibooku.presentation.ui.screens.search.ActivityBookSearch
+import com.project.ibooku.presentation.ui.BottomNavigationBar
+import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.theme.Gray10
 import com.project.ibooku.presentation.ui.theme.Gray20
 import com.project.ibooku.presentation.ui.theme.Gray30
@@ -93,166 +73,145 @@ import com.project.ibooku.presentation.ui.theme.PlaceHolderColor
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
 import com.project.ibooku.presentation.ui.theme.White
 import com.project.ibooku.presentation.ui.theme.notosanskr
-import dagger.hilt.android.AndroidEntryPoint
-
-@AndroidEntryPoint
-class ActivityHome : ComponentActivity() {
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
 
 
-        setContent {
-            BarColorsTheme()
+/**
+ * 홈 화면
+ * @param
+ */
+@Composable
+fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
 
-            IbookuTheme {
-                val navController = rememberNavController()
-                Scaffold(
-                    bottomBar = { BottomNavigationBar(navController = navController) }) { innerPadding ->
-                    NavigationGraph(navController = navController, innerPadding = innerPadding)
-                }
+    StatusBarColorsTheme(statusBarColor = SkyBlue10)
+
+    IbookuTheme {
+        Scaffold(
+            bottomBar = {
+                BottomNavigationBar(navController = navController)
             }
-        }
-    }
-}
+        ) {
+            val isLoading = viewModel.homeState.isLoading
+            val popularBookList = viewModel.homeState.popularBooks
 
-@Composable
-fun BarColorsTheme(darkTheme: Boolean = isSystemInDarkTheme()) {
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = SkyBlue10.toArgb()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+            ) {
+                val scrollState = rememberScrollState()
 
-            WindowCompat.getInsetsController(window, view)
-                .isAppearanceLightStatusBars = darkTheme
-            WindowCompat.getInsetsController(window, view)
-                .isAppearanceLightNavigationBars = darkTheme
-        }
-    }
-}
-
-@Composable
-private fun BottomNavigationBar(
-    navController: NavHostController
-) {
-    val items = listOf(
-        BottomNavItem.Home,
-        BottomNavItem.Menu
-    )
-
-    NavigationBar(
-        containerColor = White,
-        contentColor = Gray20
-    ) {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentDestination = navBackStackEntry?.destination
-        items.forEach { item ->
-            NavigationBarItem(
-                selected = currentDestination?.route == item.route,
-                icon = {
-                    Icon(
-                        modifier = Modifier.size(28.dp),
-                        imageVector = item.icon,
-                        contentDescription = stringResource(id = item.titleId)
-                    )
-                },
-                label = {
-                    Text(
-                        text = stringResource(id = item.titleId),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                ) {
+                    HomeHeader(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                    ) {
+                        navController.navigate("book_search")
                     }
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = SkyBlue10,
-                    unselectedIconColor = Gray20,
-                    selectedTextColor = SkyBlue10,
-                    unselectedTextColor = Gray20,
-                    indicatorColor = Color.Transparent
-                )
-            )
-        }
-    }
-}
 
+                    HomeBody(
+                        popularBookList = popularBookList,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                    )
+                }
 
-@Composable
-private fun NavigationGraph(
-    navController: NavHostController,
-    innerPadding: PaddingValues,
-    modifier: Modifier = Modifier
-) {
-    NavHost(
-        navController = navController,
-        startDestination = BottomNavItem.Home.route,
-        modifier = modifier
-    ) {
-        composable(BottomNavItem.Home.route) {
-            HomeScreen(modifier = modifier.padding(innerPadding))
-        }
-        composable(BottomNavItem.Menu.route) {
+                LoadingIndicator(isLoading = isLoading, modifier = Modifier.fillMaxSize())
+            }
 
         }
     }
+
 }
 
 
 /**
  * 홈 화면
- * @param modifier
+ * @param
  */
 @Composable
-@Preview(showBackground = true, heightDp = 3000)
-private fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltViewModel()) {
-    val isLoading = viewModel.homeState.isLoading
+@Preview(showBackground = true, heightDp = 2000)
+fun HomeScreenPreview() {
+    val dummyPopularBookList = listOf(
+        PopularBooksModel(
+            bookName = "이 책 진짜 귀함",
+            bookDetailUrl = "",
+            isbn = "3",
+            bookImgUrl = "",
+            authors = "나나",
+            ranking = "1",
+            additionSymbol = "",
+            className = "ㅎㅎ",
+            loanCount = "5",
+            publisher = "",
+            publicationYear = "2024.08.18"
+        ),
+        PopularBooksModel(
+            bookName = "이 책 진짜 귀함2",
+            bookDetailUrl = "",
+            isbn = "3",
+            bookImgUrl = "",
+            authors = "나나",
+            ranking = "2",
+            additionSymbol = "",
+            className = "ㅎㅎ",
+            loanCount = "5",
+            publisher = "",
+            publicationYear = "2024.08.18"
+        ),
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        val scrollState = rememberScrollState()
 
-    val scrollState = rememberScrollState()
-    Box(modifier = modifier) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-
             HomeHeader(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-            )
+            ) {
 
-            val popularBookList = viewModel.homeState.popularBooks
+            }
+
             HomeBody(
-                popularBookList = popularBookList,
+                popularBookList = dummyPopularBookList,
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
             )
         }
 
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+    }
+
+}
+
+
+@Composable
+private fun LoadingIndicator(isLoading: Boolean, modifier: Modifier = Modifier) {
+    if (isLoading) {
+        Box(
+            modifier = modifier,
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
         }
     }
 }
 
+
 @Composable
-private fun HomeHeader(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
+private fun HomeHeader(modifier: Modifier = Modifier, onSearchBarClick: () -> Unit) {
 
     Column(
         modifier = modifier
@@ -271,7 +230,9 @@ private fun HomeHeader(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-        )
+        ) {
+            onSearchBarClick()
+        }
     }
 }
 
@@ -324,13 +285,10 @@ private fun HomeHeaderTop(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun HomeHeaderSearch(modifier: Modifier = Modifier) {
-    val context = LocalContext.current
+private fun HomeHeaderSearch(modifier: Modifier = Modifier, onSearchBarClick: () -> Unit) {
     Surface(modifier = modifier, shape = RoundedCornerShape(100),
         onClick = {
-            context.startActivity(
-                Intent(context, ActivityBookSearch::class.java)
-            )
+            onSearchBarClick()
         }) {
         Row(
             modifier = Modifier
@@ -886,11 +844,6 @@ private fun HomeBodyHelpHomepageAndCs(
     }
 }
 
-
-sealed class BottomNavItem(val titleId: Int, val route: String, val icon: ImageVector) {
-    object Home : BottomNavItem(R.string.nav_home, "home", Icons.Default.Home)
-    object Menu : BottomNavItem(R.string.nav_menu, "menu", Icons.Default.Menu)
-}
 
 interface HomeHelpClickListener {
     fun onUserGuideClick()
