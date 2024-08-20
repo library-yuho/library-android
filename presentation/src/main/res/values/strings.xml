@@ -28,6 +28,6 @@
     <string name="search_book_placeholder">도서명, 글쓴이, 출판사로 검색</string>
     <string name="search_book_recent_keyword_title">최근에 검색했어요 🔎</string>
     <string name="search_book_popular_keyword_title">이번 달 인기 키워드에요 ✨</string>
-
+    <string name="search_book_result_title">#VALUE# 도서명 검색 결과</string>
 
 </resources>

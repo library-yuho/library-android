@@ -1,9 +1,11 @@
 package com.project.ibooku.presentation.ui
 
 import android.app.Activity
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -35,9 +37,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.screens.home.HomeScreen
+import com.project.ibooku.presentation.ui.screens.map.BookReviewLocationMapScreen
 import com.project.ibooku.presentation.ui.screens.search.BookSearchScreen
 import com.project.ibooku.presentation.ui.theme.Black
-import com.project.ibooku.presentation.ui.theme.Gray20
+import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
 import com.project.ibooku.presentation.ui.theme.White
 import dagger.hilt.android.AndroidEntryPoint
@@ -56,7 +59,10 @@ class ActivityHome : ComponentActivity() {
 }
 
 @Composable
-fun StatusBarColorsTheme(statusBarColor: Color? = null, isDarkTheme: Boolean = isSystemInDarkTheme()) {
+fun StatusBarColorsTheme(
+    statusBarColor: Color? = null,
+    isDarkTheme: Boolean = isSystemInDarkTheme()
+) {
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -65,7 +71,7 @@ fun StatusBarColorsTheme(statusBarColor: Color? = null, isDarkTheme: Boolean = i
                 statusBarColor?.toArgb() ?: if (isDarkTheme) Black.toArgb() else White.toArgb()
 
             WindowCompat.getInsetsController(window, view)
-                .isAppearanceLightStatusBars = if(statusBarColor != null) false else !isDarkTheme
+                .isAppearanceLightStatusBars = if (statusBarColor != null) false else !isDarkTheme
             WindowCompat.getInsetsController(window, view)
                 .isAppearanceLightNavigationBars = !isDarkTheme
         }
@@ -83,7 +89,7 @@ fun BottomNavigationBar(
 
     NavigationBar(
         containerColor = White,
-        contentColor = Gray20
+        contentColor = Gray30
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
@@ -120,9 +126,9 @@ fun BottomNavigationBar(
                 },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = SkyBlue10,
-                    unselectedIconColor = Gray20,
+                    unselectedIconColor = Gray30,
                     selectedTextColor = SkyBlue10,
-                    unselectedTextColor = Gray20,
+                    unselectedTextColor = Gray30,
                     indicatorColor = Color.Transparent
                 )
             )
@@ -149,6 +155,26 @@ private fun NavigationGraph(
         }
         composable(NavItem.BookSearch.route) {
             BookSearchScreen(navController = navController)
+        }
+        composable(NavItem.BookDetail.route) {
+
+        }
+        composable(NavItem.BookNearLibraryMap.route) {
+
+        }
+        composable(NavItem.BookReviewOnboarding.route) {
+
+        }
+        composable(NavItem.BookReviewWrite.route) {
+
+        }
+        composable(NavItem.BookReviewLocation.route) {
+
+        }
+        composable(NavItem.BookReviewLocationMap.route) {
+            BookReviewLocationMapScreen(navController = navController)
+        }
+        composable(NavItem.BookReviewComplete.route) {
 
         }
     }
@@ -159,5 +185,12 @@ sealed class NavItem(val route: String) {
     data object Home : NavItem("home")
     data object Menu : NavItem("menu")
     data object BookSearch : NavItem("book_search")
+    data object BookDetail : NavItem("book_detail")
+    data object BookNearLibraryMap : NavItem("book_near_library_map")
+    data object BookReviewOnboarding : NavItem("book_review_onboarding")
+    data object BookReviewWrite : NavItem("book_review_write")
+    data object BookReviewLocation : NavItem("book_review_location")
+    data object BookReviewLocationMap : NavItem("book_review_location_map")
+    data object BookReviewComplete : NavItem("book_review_complete")
 }
 

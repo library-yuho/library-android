@@ -38,7 +38,10 @@ object RetrofitModule {
                                 addQueryParameter("authKey", apiKey)
                                 addQueryParameter("format", "json")
                             }
-                            BuildConfig.CENTRAL_API_KEY -> addQueryParameter("key", apiKey)
+                            BuildConfig.CENTRAL_API_KEY -> {
+                                addQueryParameter("key", apiKey)
+                                addQueryParameter("apiType", "json")
+                            }
                         }
                     }.build()
 

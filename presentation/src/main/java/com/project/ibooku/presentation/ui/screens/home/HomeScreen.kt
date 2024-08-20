@@ -2,7 +2,10 @@ package com.project.ibooku.presentation.ui.screens.home
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.OverscrollEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +23,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -56,6 +60,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.project.ibooku.data.remote.UrlLink.CENTRAL_HOMEPAGE_URL
@@ -64,10 +69,10 @@ import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.BottomNavigationBar
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.theme.Gray10
-import com.project.ibooku.presentation.ui.theme.Gray20
 import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray40
 import com.project.ibooku.presentation.ui.theme.Gray50
+import com.project.ibooku.presentation.ui.theme.Gray60
 import com.project.ibooku.presentation.ui.theme.IbookuTheme
 import com.project.ibooku.presentation.ui.theme.PlaceHolderColor
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
@@ -90,8 +95,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                 BottomNavigationBar(navController = navController)
             }
         ) {
-            val isLoading = viewModel.homeState.isLoading
-            val popularBookList = viewModel.homeState.popularBooks
+            val homeState = viewModel.homeState.collectAsStateWithLifecycle()
 
             Box(
                 modifier = Modifier
@@ -114,14 +118,17 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                     }
 
                     HomeBody(
-                        popularBookList = popularBookList,
+                        popularBookList = homeState.value.popularBooks,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .wrapContentHeight()
+                            .wrapContentHeight(),
+                        onReadReviewClick = {},
+                        onWriteReviewClick = {},
+                        onPopularBookClick = {}
                     )
                 }
 
-                LoadingIndicator(isLoading = isLoading, modifier = Modifier.fillMaxSize())
+                LoadingIndicator(isLoading = homeState.value.isLoading, modifier = Modifier.fillMaxSize())
             }
 
         }
@@ -188,7 +195,10 @@ fun HomeScreenPreview() {
                 popularBookList = dummyPopularBookList,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
+                    .wrapContentHeight(),
+                onReadReviewClick = {},
+                onWriteReviewClick = {},
+                onPopularBookClick = {}
             )
         }
 
@@ -323,7 +333,13 @@ private fun HomeHeaderSearch(modifier: Modifier = Modifier, onSearchBarClick: ()
 }
 
 @Composable
-private fun HomeBody(popularBookList: List<PopularBooksModel>, modifier: Modifier = Modifier) {
+private fun HomeBody(
+    popularBookList: List<PopularBooksModel>,
+    modifier: Modifier = Modifier,
+    onWriteReviewClick: () -> Unit,
+    onReadReviewClick: () -> Unit,
+    onPopularBookClick: () -> Unit
+) {
     val context = LocalContext.current
     Surface(modifier = modifier.background(Color.Transparent), shape = RoundedCornerShape(16.dp)) {
 
@@ -335,16 +351,18 @@ private fun HomeBody(popularBookList: List<PopularBooksModel>, modifier: Modifie
             HomeBodyReview(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
+                    .wrapContentHeight(),
+                onWriteReviewClick = onWriteReviewClick,
+                onReadReviewClick = onReadReviewClick
             )
-
             Spacer(modifier = Modifier.height(26.dp))
 
             HomeBodyPopularBook(
                 popularBookList = popularBookList,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
+                    .wrapContentHeight(),
+                onPopularBookClick = onPopularBookClick
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -374,7 +392,11 @@ private fun HomeBody(popularBookList: List<PopularBooksModel>, modifier: Modifie
 }
 
 @Composable
-private fun HomeBodyReview(modifier: Modifier = Modifier) {
+private fun HomeBodyReview(
+    modifier: Modifier = Modifier,
+    onWriteReviewClick: () -> Unit,
+    onReadReviewClick: () -> Unit
+) {
     Column(modifier = modifier.padding(start = 18.dp, end = 18.dp, top = 28.dp, bottom = 16.dp)) {
         Text(
             modifier = Modifier.padding(start = 4.dp),
@@ -388,7 +410,8 @@ private fun HomeBodyReview(modifier: Modifier = Modifier) {
         HomeBodyReviewWrite(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
+                .wrapContentHeight(),
+            onWriteReviewClick = onWriteReviewClick
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -396,18 +419,21 @@ private fun HomeBodyReview(modifier: Modifier = Modifier) {
         HomeBodyReviewRead(
             modifier = Modifier
                 .fillMaxWidth()
-                .wrapContentHeight()
+                .wrapContentHeight(),
+            onReadReviewClick = onReadReviewClick
         )
     }
 }
 
 @Composable
-private fun HomeBodyReviewWrite(modifier: Modifier = Modifier) {
+private fun HomeBodyReviewWrite(modifier: Modifier = Modifier, onWriteReviewClick: () -> Unit) {
     Surface(
         modifier = modifier.background(White),
         shape = RoundedCornerShape(10.dp),
         shadowElevation = 4.dp,
-        onClick = { /*TODO*/ }
+        onClick = {
+            onWriteReviewClick()
+        }
     ) {
         Row(
             modifier = Modifier
@@ -427,7 +453,7 @@ private fun HomeBodyReviewWrite(modifier: Modifier = Modifier) {
                     text = stringResource(id = R.string.home_body_review_write_desc),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Gray20
+                    color = Gray30
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -436,14 +462,14 @@ private fun HomeBodyReviewWrite(modifier: Modifier = Modifier) {
                     text = stringResource(id = R.string.home_body_review_write_title),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Gray40
+                    color = Gray50
                 )
             }
 
             Icon(
                 modifier = Modifier.size(24.dp),
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                tint = Gray30,
+                tint = Gray40,
                 contentDescription = null
             )
         }
@@ -451,12 +477,14 @@ private fun HomeBodyReviewWrite(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun HomeBodyReviewRead(modifier: Modifier = Modifier) {
+private fun HomeBodyReviewRead(modifier: Modifier = Modifier, onReadReviewClick: () -> Unit) {
     Surface(
         modifier = modifier.background(White),
         shape = RoundedCornerShape(10.dp),
         shadowElevation = 4.dp,
-        onClick = { /*TODO*/ }
+        onClick = {
+            onReadReviewClick()
+        }
     ) {
         Column(
             modifier = Modifier
@@ -489,7 +517,7 @@ private fun HomeBodyReviewRead(modifier: Modifier = Modifier) {
                         text = stringResource(id = descStrId),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Gray20
+                        color = Gray30
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -499,14 +527,14 @@ private fun HomeBodyReviewRead(modifier: Modifier = Modifier) {
                         text = stringResource(id = R.string.home_body_review_read_title),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Gray40
+                        color = Gray50
                     )
                 }
 
                 Icon(
                     modifier = Modifier.size(24.dp),
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    tint = Gray30,
+                    tint = Gray40,
                     contentDescription = null
                 )
             }
@@ -528,7 +556,8 @@ private fun HomeBodyReviewRead(modifier: Modifier = Modifier) {
 @Composable
 private fun HomeBodyPopularBook(
     popularBookList: List<PopularBooksModel>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPopularBookClick: () -> Unit
 ) {
     Column(modifier = modifier) {
         Row(
@@ -542,7 +571,7 @@ private fun HomeBodyPopularBook(
             Column {
                 Text(
                     text = stringResource(id = R.string.home_body_popular_book),
-                    color = Gray50,
+                    color = Gray60,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -552,7 +581,7 @@ private fun HomeBodyPopularBook(
                 /*TODO: 날짜 바인딩 */
                 Text(
                     text = "(24.07.24 ~ 24.07.30)",
-                    color = Gray20,
+                    color = Gray30,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -581,68 +610,82 @@ private fun HomeBodyPopularBook(
                 .padding(top = 6.dp, start = 12.dp, end = 12.dp)
         ) {
             items(items = popularBookList) { item ->
-                Surface(
+                HomeBodyPopularBookItem(
+                    item = item,
                     modifier = Modifier
                         .width(240.dp)
-                        .wrapContentHeight()
-                        .padding(6.dp)
-                        .border(width = 0.5.dp, color = Gray10, RoundedCornerShape(10.dp)),
-                    shadowElevation = 4.dp,
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .background(White)
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = item.ranking,
-                            color = Gray40,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        AsyncImage(
-                            modifier = Modifier.size(50.dp, 74.dp),
-                            model = item.bookImgUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop
-                        )
-
-                        Spacer(modifier = Modifier.width(14.dp))
-
-                        Column {
-                            Text(
-                                text = item.bookName,
-                                color = Gray40,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                style = TextStyle(
-                                    platformStyle = PlatformTextStyle(
-                                        includeFontPadding = false
-                                    )
-                                )
-                            )
-                            Text(
-                                text = item.authors,
-                                color = Gray20,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Medium,
-                                style = TextStyle(
-                                    platformStyle = PlatformTextStyle(
-                                        includeFontPadding = false
-                                    )
-                                )
-                            )
-                        }
-                    }
-                }
+                        .wrapContentHeight(),
+                    onPopularBookClick = onPopularBookClick
+                )
             }
         }
 
+    }
+}
+
+@Composable
+fun HomeBodyPopularBookItem(
+    item: PopularBooksModel,
+    modifier: Modifier = Modifier,
+    onPopularBookClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier
+            .padding(6.dp)
+            .border(width = 0.5.dp, color = Gray10, RoundedCornerShape(10.dp)),
+        shadowElevation = 4.dp,
+        shape = RoundedCornerShape(10.dp),
+        onClick = onPopularBookClick
+    ) {
+        Row(
+            modifier = Modifier
+                .background(White)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = item.ranking,
+                color = Gray50,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            AsyncImage(
+                modifier = Modifier.size(50.dp, 74.dp),
+                model = item.bookImgUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column {
+                Text(
+                    text = item.bookName,
+                    color = Gray50,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    style = TextStyle(
+                        platformStyle = PlatformTextStyle(
+                            includeFontPadding = false
+                        )
+                    )
+                )
+                Text(
+                    text = item.authors,
+                    color = Gray30,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    style = TextStyle(
+                        platformStyle = PlatformTextStyle(
+                            includeFontPadding = false
+                        )
+                    )
+                )
+            }
+        }
     }
 }
 
@@ -656,7 +699,7 @@ private fun HomeBodyHelp(modifier: Modifier = Modifier, helpClickListener: HomeH
             text = stringResource(id = R.string.home_body_help),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = Gray50
+            color = Gray60
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -713,14 +756,14 @@ private fun HomeBodyHelpUserGuide(modifier: Modifier = Modifier, onUserGuideClic
                         text = stringResource(id = R.string.home_body_help_guide_title),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Gray40
+                        color = Gray50
                     )
 
                     Text(
                         text = stringResource(id = R.string.home_body_help_guide_desc),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Gray20
+                        color = Gray30
                     )
                 }
 
@@ -731,7 +774,7 @@ private fun HomeBodyHelpUserGuide(modifier: Modifier = Modifier, onUserGuideClic
                     Icon(
                         modifier = Modifier.size(20.dp),
                         imageVector = Icons.Default.Close,
-                        tint = Gray20,
+                        tint = Gray30,
                         contentDescription = null
                     )
                 }
@@ -782,14 +825,14 @@ private fun HomeBodyHelpHomepageAndCs(
                         text = stringResource(id = R.string.home_body_help_homepage_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
-                        color = Gray40
+                        color = Gray50
                     )
 
                     Text(
                         text = stringResource(id = R.string.home_body_help_homepage_desc),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Gray20
+                        color = Gray30
                     )
                 }
             }
@@ -829,14 +872,14 @@ private fun HomeBodyHelpHomepageAndCs(
                         text = stringResource(id = R.string.home_body_help_cs_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
-                        color = Gray40
+                        color = Gray50
                     )
 
                     Text(
                         text = stringResource(id = R.string.home_body_help_cs_desc),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Gray20
+                        color = Gray30
                     )
                 }
             }
