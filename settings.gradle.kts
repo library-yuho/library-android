@@ -18,6 +18,7 @@ dependencyResolutionManagement {
         mavenCentral()
         maven ("https://www.jitpack.io")
         maven("https://oss.sonatype.org/content/repositories/snapshots")
+        maven("https://repository.map.naver.com/archive/maven")
     }
 }
 

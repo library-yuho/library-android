@@ -90,4 +90,8 @@ dependencies {
 
     // timber
     implementation(libs.timber)
+
+    // naver map
+    implementation(libs.naver.map.compose)
+    implementation(libs.naver.map.location)
 }
