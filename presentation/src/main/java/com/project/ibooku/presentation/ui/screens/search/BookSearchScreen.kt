@@ -152,7 +152,6 @@ fun BookSearchScreen(
                     }
                     if (bookSearchState.value.relatedKeywordList.isNotEmpty()) {
                         BookSearchBodyRelatedKeywordList(
-                            keyword = bookSearchState.value.searchKeyword,
                             searchKeywordList = bookSearchState.value.relatedKeywordList,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -426,7 +425,6 @@ private fun ChipItem(
 
 @Composable
 fun BookSearchBodyRelatedKeywordList(
-    keyword: String,
     searchKeywordList: List<String>,
     modifier: Modifier = Modifier,
     onRelatedKeywordClick: (String) -> Unit
@@ -525,6 +523,7 @@ fun BookSearchBodySearchResultItem(
             .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFFF8F8F8))
             .padding(horizontal = 20.dp, vertical = 15.dp)
+            .clickable { onResultItemClick(result) }
     ) {
         val htmlTitleText =
             Html.fromHtml(result.titleInfo, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()
