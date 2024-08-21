@@ -67,6 +67,7 @@ import com.project.ibooku.data.remote.UrlLink.CENTRAL_HOMEPAGE_URL
 import com.project.ibooku.domain.model.PopularBooksModel
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.BottomNavigationBar
+import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.theme.Gray10
 import com.project.ibooku.presentation.ui.theme.Gray30
@@ -114,7 +115,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                             .fillMaxWidth()
                             .wrapContentHeight()
                     ) {
-                        navController.navigate("book_search")
+                        navController.navigate(NavItem.BookSearch.route)
                     }
 
                     HomeBody(
@@ -122,7 +123,9 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentHeight(),
-                        onReadReviewClick = {},
+                        onReadReviewClick = {
+                            navController.navigate(NavItem.BookReviewReadMap.route)
+                        },
                         onWriteReviewClick = {},
                         onPopularBookClick = {}
                     )
@@ -431,9 +434,7 @@ private fun HomeBodyReviewWrite(modifier: Modifier = Modifier, onWriteReviewClic
         modifier = modifier.background(White),
         shape = RoundedCornerShape(10.dp),
         shadowElevation = 4.dp,
-        onClick = {
-            onWriteReviewClick()
-        }
+        onClick = onWriteReviewClick
     ) {
         Row(
             modifier = Modifier
@@ -482,9 +483,7 @@ private fun HomeBodyReviewRead(modifier: Modifier = Modifier, onReadReviewClick:
         modifier = modifier.background(White),
         shape = RoundedCornerShape(10.dp),
         shadowElevation = 4.dp,
-        onClick = {
-            onReadReviewClick()
-        }
+        onClick = onReadReviewClick
     ) {
         Column(
             modifier = Modifier

@@ -1,14 +1,8 @@
 package com.project.ibooku.presentation.ui.screens.home
 
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.project.ibooku.base.Datetime
+import com.project.ibooku.presentation.base.Datetime
 import com.project.ibooku.core.util.Resources
 import com.project.ibooku.domain.usecase.PopularBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel

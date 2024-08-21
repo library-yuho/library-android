@@ -53,7 +53,6 @@ android {
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":base"))
     implementation(project(":data"))
     implementation(project(":domain"))
 

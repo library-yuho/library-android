@@ -1,11 +1,9 @@
 package com.project.ibooku.presentation.ui
 
 import android.app.Activity
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -37,7 +35,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.screens.home.HomeScreen
-import com.project.ibooku.presentation.ui.screens.map.BookReviewLocationMapScreen
+import com.project.ibooku.presentation.ui.screens.map.BookReviewReadMap
 import com.project.ibooku.presentation.ui.screens.search.BookSearchScreen
 import com.project.ibooku.presentation.ui.theme.Black
 import com.project.ibooku.presentation.ui.theme.Gray30
@@ -162,6 +160,9 @@ private fun NavigationGraph(
         composable(NavItem.BookNearLibraryMap.route) {
 
         }
+        composable(NavItem.BookReviewReadMap.route){
+            BookReviewReadMap(navController = navController)
+        }
         composable(NavItem.BookReviewOnboarding.route) {
 
         }
@@ -172,7 +173,7 @@ private fun NavigationGraph(
 
         }
         composable(NavItem.BookReviewLocationMap.route) {
-            BookReviewLocationMapScreen(navController = navController)
+
         }
         composable(NavItem.BookReviewComplete.route) {
 
@@ -187,6 +188,7 @@ sealed class NavItem(val route: String) {
     data object BookSearch : NavItem("book_search")
     data object BookDetail : NavItem("book_detail")
     data object BookNearLibraryMap : NavItem("book_near_library_map")
+    data object BookReviewReadMap : NavItem("book_review_read_map")
     data object BookReviewOnboarding : NavItem("book_review_onboarding")
     data object BookReviewWrite : NavItem("book_review_write")
     data object BookReviewLocation : NavItem("book_review_location")
