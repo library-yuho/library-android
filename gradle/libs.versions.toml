@@ -21,6 +21,8 @@ hilt = "2.48"
 timber = "4.7.1"
 sandwich = "2.0.8"
 hiltNavigationCompose = "1.0.0"
+naverMapCompose = "1.7.2"
+naverMapLocation = "21.0.1"
 
 [libraries]
 # default
@@ -61,6 +63,9 @@ timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "tim
 
 sandwich = { group = "com.github.skydoves", name = "sandwich", version.ref = "sandwich"}
 sandwich-retrofit = { group = "com.github.skydoves", name = "sandwich-retrofit", version.ref = "sandwich"}
+
+naver-map-compose = { group = "io.github.fornewid", name = "naver-map-compose", version.ref = "naverMapCompose"}
+naver-map-location = { group = "io.github.fornewid", name = "naver-map-location", version.ref = "naverMapLocation"}
 
 
 [plugins]

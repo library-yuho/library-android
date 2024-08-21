@@ -1,23 +1,17 @@
 package com.project.ibooku.presentation.ui.screens.home
 
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.project.ibooku.base.Datetime
+import com.project.ibooku.presentation.base.Datetime
 import com.project.ibooku.core.util.Resources
 import com.project.ibooku.domain.usecase.PopularBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import java.time.LocalDate
 import javax.inject.Inject
 
-@RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val popularBooksUseCase: PopularBooksUseCase
@@ -27,19 +21,19 @@ class HomeViewModel @Inject constructor(
         loadPopularBooks()
     }
 
-    var homeState by mutableStateOf(HomeState())
-        private set
+    private val _homeState = MutableStateFlow(HomeState())
+    val homeState = _homeState.asStateFlow()
 
-    fun onEvent(event: HomeEvents){
-        when(event){
+    fun onEvent(event: HomeEvents) {
+        when (event) {
             is HomeEvents.LoadBooks -> {
 
             }
         }
     }
 
-    private fun loadPopularBooks(){
-        viewModelScope.launch{
+    private fun loadPopularBooks() {
+        viewModelScope.launch {
             /* TODO: 나중에 state로 바꿔주기 */
             val endLocalDate = LocalDate.now()
             val startLocalDate = endLocalDate.minusDays(30)
@@ -49,20 +43,20 @@ class HomeViewModel @Inject constructor(
             popularBooksUseCase(
                 startDate = startDate,
                 endDate = endDate
-            ).collect{ result ->
-                when(result){
+            ).collect { result ->
+                when (result) {
                     is Resources.Loading -> {
-                        homeState = homeState.copy(isLoading = result.isLoading)
+                        _homeState.value = _homeState.value.copy(isLoading = result.isLoading)
                     }
+
                     is Resources.Success -> {
-                        result.data?.let{ books ->
-                            homeState = homeState.copy(
-                                popularBooks = books
-                            )
+                        result.data?.let { books ->
+                            _homeState.value = _homeState.value.copy(popularBooks = books)
                         }
                     }
+
                     is Resources.Error -> {
-                        homeState = homeState.copy(isLoading = false)
+                        _homeState.value = _homeState.value.copy(isLoading = false)
                     }
                 }
             }

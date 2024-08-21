@@ -10,7 +10,7 @@ android {
     compileSdk = 34
 
     defaultConfig {
-        minSdk = 24
+        minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -53,7 +53,6 @@ android {
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":base"))
     implementation(project(":data"))
     implementation(project(":domain"))
 
@@ -90,4 +89,8 @@ dependencies {
 
     // timber
     implementation(libs.timber)
+
+    // naver map
+    implementation(libs.naver.map.compose)
+    implementation(libs.naver.map.location)
 }

@@ -1,9 +1,10 @@
 package com.project.ibooku.data.repository
 
-import android.util.Log
 import com.project.ibooku.core.util.Resources
 import com.project.ibooku.data.remote.service.CentralService
 import com.project.ibooku.data.remote.service.NaruService
+import com.project.ibooku.domain.model.KeywordSearchResultItem
+import com.project.ibooku.domain.model.KeywordSearchResultModel
 import com.project.ibooku.domain.model.PopularBooksModel
 import com.project.ibooku.domain.respository.LibraryRepository
 import com.skydoves.sandwich.retrofit.errorBody
@@ -11,7 +12,6 @@ import com.skydoves.sandwich.suspendOnError
 import com.skydoves.sandwich.suspendOnException
 import com.skydoves.sandwich.suspendOnSuccess
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -22,6 +22,7 @@ class LibraryRepositoryImpl @Inject constructor(
     private val naruService: NaruService,
     private val centralService: CentralService
 ) : LibraryRepository {
+
     override suspend fun getPopularBooks(
         startDate: String,
         endDate: String
@@ -34,7 +35,6 @@ class LibraryRepositoryImpl @Inject constructor(
                 if (data == null) {
                     emit(Resources.Loading(false))
                 } else {
-                    Log.d("server-response","${data!!.response.docs}")
                     val resList = data!!.response.docs.map { model ->
                         with(model.doc) {
                             PopularBooksModel(
@@ -67,32 +67,58 @@ class LibraryRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
     }
 
-//    private fun <T> safeApiCall(response: Response<T>): T {
-//        return try {
-//            if (response.isSuccessful && response.body() != null) {
-//                response.body()!!
-//            } else {
-//                throw FailException(message = "fail")
-//            }
-//        } catch (e: HttpException) {
-//            val message = e.message
-//            throw when (e.code()) {
-//                400 -> BadRequestException(message = message)
-//                401 -> UnauthorizedException(message = message)
-//                403 -> ForbiddenException(message = message)
-//                404 -> NotFoundException(message = message)
-//                500, 501, 502, 503 -> ServerException(message = message)
-//                else -> OtherHttpException(
-//                    code = e.code(),
-//                    message = message
-//                )
-//            }
-//        } catch (e: SocketTimeoutException) {
-//            throw TimeOutException(message = e.message)
-//        } catch (e: UnknownHostException) {
-//            throw InternetException(message = e.message)
-//        } catch (e: Exception) {
-//            throw UnknownException(message = e.message)
-//        }
-//    }
+
+    /**
+     * '국립중앙도서관'으로부터 검색어에 대한 검색 결과 목록을 받아온다.
+     * @param keyword
+     * @return 검색 결과 목록
+     */
+    override suspend fun getKeywordSearchResult(keyword: String): Flow<Resources<KeywordSearchResultModel>> {
+        return flow<Resources<KeywordSearchResultModel>> {
+            emit(Resources.Loading(true))
+            val response = centralService.getKeywordSearchResult(keyword)
+            response.suspendOnSuccess {
+                if (data == null) {
+                    val emptyResult = KeywordSearchResultModel(
+                        searchedKeyword = keyword,
+                        resultList = listOf()
+                    )
+                    emit(Resources.Loading(false))
+                    emit(Resources.Success(data = emptyResult))
+                } else {
+                    val res = with(data!!) {
+                        KeywordSearchResultModel(
+                            searchedKeyword = kwd,
+                            resultList = result?.map { item ->
+                                with(item) {
+                                    KeywordSearchResultItem(
+                                        titleInfo = titleInfo,
+                                        typeName = typeName,
+                                        authorInfo = authorInfo,
+                                        publisherInfo = pubInfo,
+                                        isbn = isbn,
+                                        className = kdcName1s,
+                                        imageUrl = imageUrl
+                                    )
+                                }
+                            } ?: listOf()
+                        )
+                    }
+
+                    emit(Resources.Success(data = res))
+                    emit(Resources.Loading(false))
+                }
+            }.suspendOnError {
+                Timber.tag("server-response").e("$errorBody")
+                emit(Resources.Error("$errorBody"))
+                emit(Resources.Loading(false))
+            }.suspendOnException {
+                Timber.tag("server-response").e("$message")
+                emit(Resources.Error("$message"))
+                emit(Resources.Loading(false))
+            }
+
+        }.flowOn(Dispatchers.IO)
+    }
+
 }
