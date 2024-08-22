@@ -1,4 +1,4 @@
-package com.project.ibooku.presentation.base
+package com.project.ibooku.presentation.common
 
 import android.content.Context
 import com.project.ibooku.presentation.R

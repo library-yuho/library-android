@@ -1,4 +1,4 @@
-package com.project.ibooku.presentation.ui.screens.search
+package com.project.ibooku.presentation.ui.feature.search
 
 import android.text.Html
 import androidx.activity.compose.BackHandler
@@ -66,15 +66,20 @@ import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.project.ibooku.domain.model.KeywordSearchResultItem
+import com.project.ibooku.domain.model.KeywordSearchResultModel
 import com.project.ibooku.presentation.R
+import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
+import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
+import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.Black
-import com.project.ibooku.presentation.ui.theme.Gray20
 import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray50
-import com.project.ibooku.presentation.ui.theme.Gray60
+import com.project.ibooku.presentation.ui.theme.Gray70
+import com.project.ibooku.presentation.ui.theme.Gray80
 import com.project.ibooku.presentation.ui.theme.IbookuTheme
 import com.project.ibooku.presentation.ui.theme.PlaceHolderColor
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
@@ -99,79 +104,55 @@ fun BookSearchScreen(
             BackHandler {
                 if (bookSearchState.value.searchKeyword.isEmpty()) {
                     navController.popBackStack()
-                }else{
+                } else {
                     viewModel.onEvent(BookSearchEvents.SearchTextChanged(""))
                 }
             }
-            Column(
+            BookSearchCommonScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(White)
-                    .padding(it)
-            ) {
-                BookSearchScreenHeader(
-                    searchKeyword = bookSearchState.value.searchKeyword,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight(),
-                    onBackPressed = { navController.popBackStack() },
-                    onTextChanged = { keyword ->
-                        viewModel.onEvent(BookSearchEvents.SearchTextChanged(keyword))
-                    },
-                    onSearch = {
-                        if (bookSearchState.value.searchKeyword.isNotEmpty()) {
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
-                        }
-                        viewModel.onEvent(BookSearchEvents.SearchKeyword)
+                    .padding(it),
+                relatedKeywordList = bookSearchState.value.relatedKeywordList,
+                searchKeyword = bookSearchState.value.searchKeyword,
+                searchResult = bookSearchState.value.searchResult,
+                onBackPressed = {
+                    navController.popBackStack()
+                },
+                onSearch = {
+                    if (bookSearchState.value.searchKeyword.isNotEmpty()) {
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
                     }
-                )
-                Box(modifier = Modifier.weight(1f)) {
-                    if (bookSearchState.value.searchResult.resultList.isEmpty()) {
-                        BookSearchBodyNoKeyword(
-                            modifier = Modifier.fillMaxSize(),
-                            onChipSelected = { keyword ->
-                                focusManager.clearFocus()
-                                keyboardController?.hide()
-                                viewModel.onEvent(
-                                    BookSearchEvents.SearchWithSelectionSomething(
-                                        keyword
-                                    )
-                                )
-                            }
+                    viewModel.onEvent(BookSearchEvents.SearchKeyword)
+                },
+                onChipSelected = { keyword ->
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                    viewModel.onEvent(
+                        BookSearchEvents.SearchWithSelectionSomething(keyword)
+                    )
+                },
+                onTextChanged = { keyword ->
+                    viewModel.onEvent(BookSearchEvents.SearchTextChanged(keyword))
+                },
+                onRelatedKeywordClick = { relatedKeyword ->
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                    viewModel.onEvent(
+                        BookSearchEvents.SearchWithSelectionSomething(
+                            relatedKeyword
                         )
-                    } else {
-                        BookSearchBodySearchResultList(
-                            modifier = Modifier.fillMaxSize(),
-                            searchedKeyword = bookSearchState.value.searchResult.searchedKeyword,
-                            searchResultList = bookSearchState.value.searchResult.resultList,
-                            onResultItemClick = { result ->
-
-                            }
-                        )
-                    }
-                    if (bookSearchState.value.relatedKeywordList.isNotEmpty()) {
-                        BookSearchBodyRelatedKeywordList(
-                            searchKeywordList = bookSearchState.value.relatedKeywordList,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight(),
-                            onRelatedKeywordClick = { relatedKeyword ->
-                                focusManager.clearFocus()
-                                keyboardController?.hide()
-                                viewModel.onEvent(
-                                    BookSearchEvents.SearchWithSelectionSomething(
-                                        relatedKeyword
-                                    )
-                                )
-                            }
-                        )
-                    }
+                    )
+                },
+                onResultItemClick = { result ->
+                    navController.navigate(NavItem.BookDetail.route)
                 }
-            }
+            )
         }
     }
 }
+
 
 @Composable
 @Preview(showBackground = true)
@@ -195,6 +176,56 @@ fun BookSearchScreenPreview() {
             modifier = Modifier.weight(1f),
             onChipSelected = {}
         )
+    }
+}
+
+@Composable
+fun BookSearchCommonScreen(
+    searchKeyword: String,
+    relatedKeywordList: List<String>,
+    searchResult: KeywordSearchResultModel,
+    modifier: Modifier = Modifier,
+    onBackPressed: () -> Unit,
+    onTextChanged: (String) -> Unit,
+    onSearch: () -> Unit,
+    onChipSelected: (String) -> Unit,
+    onRelatedKeywordClick: (String) -> Unit,
+    onResultItemClick: (KeywordSearchResultItem) -> Unit
+) {
+    Column(modifier = modifier) {
+        BookSearchScreenHeader(
+            searchKeyword = searchKeyword,
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            onBackPressed = onBackPressed,
+            onTextChanged = onTextChanged,
+            onSearch = onSearch
+        )
+        Box(modifier = Modifier.weight(1f)) {
+            if (searchResult.resultList.isEmpty()) {
+                BookSearchBodyNoKeyword(
+                    modifier = Modifier.fillMaxSize(),
+                    onChipSelected = onChipSelected
+                )
+            } else {
+                BookSearchBodySearchResultList(
+                    modifier = Modifier.fillMaxSize(),
+                    searchedKeyword = searchResult.searchedKeyword,
+                    searchResultList = searchResult.resultList,
+                    onResultItemClick = onResultItemClick
+                )
+            }
+            if (relatedKeywordList.isNotEmpty()) {
+                BookSearchBodyRelatedKeywordList(
+                    searchKeywordList = relatedKeywordList,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    onRelatedKeywordClick = onRelatedKeywordClick
+                )
+            }
+        }
     }
 }
 
@@ -223,7 +254,7 @@ private fun BookSearchScreenHeader(
                 Icon(
                     modifier = Modifier.size(36.dp),
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                    tint = Gray30,
+                    tint = Gray50,
                     contentDescription = null
                 )
             }
@@ -274,7 +305,7 @@ private fun BookSearchScreenHeader(
                     Icon(
                         modifier = Modifier.size(20.dp),
                         imageVector = ImageVector.vectorResource(id = R.drawable.ic_circle_close),
-                        tint = Gray30,
+                        tint = Gray50,
                         contentDescription = null
                     )
                 }
@@ -321,7 +352,7 @@ private fun BookSearchBodyRecentKeyword(
                 text = stringResource(id = R.string.search_book_recent_keyword_title),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = Gray60
+                color = Gray80
             )
 
             LazyColumn(
@@ -340,7 +371,7 @@ private fun BookSearchBodyRecentKeyword(
                         Icon(
                             modifier = Modifier.size(16.dp),
                             imageVector = Icons.Default.Close,
-                            tint = Gray30,
+                            tint = Gray50,
                             contentDescription = null
                         )
                     }
@@ -361,7 +392,7 @@ private fun BookSearchBodyPopularKeyword(
             text = stringResource(id = R.string.search_book_popular_keyword_title),
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = Gray60
+            color = Gray80
         )
 
         Spacer(modifier = Modifier.height(14.dp))
@@ -402,7 +433,7 @@ private fun BookSearchBodyPopularKeyword(
 private fun ChipItem(
     name: String,
     modifier: Modifier = Modifier,
-    color: Color = Gray30,
+    color: Color = Gray50,
     onChipSelected: (String) -> Unit
 ) {
     Card(modifier = Modifier
@@ -487,7 +518,7 @@ fun BookSearchBodySearchResultList(
                 append(str.substring(endIdx, str.length))
             },
             fontSize = 20.sp,
-            color = Gray50,
+            color = Gray70,
             style = TextStyle(
                 platformStyle = PlatformTextStyle(
                     includeFontPadding = false
@@ -545,7 +576,7 @@ fun BookSearchBodySearchResultItem(
 
         Text(
             text = htmlAuthorText,
-            color = Gray20,
+            color = Gray30,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             style = TextStyle(

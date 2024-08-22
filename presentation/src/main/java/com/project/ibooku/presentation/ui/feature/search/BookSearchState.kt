@@ -1,4 +1,4 @@
-package com.project.ibooku.presentation.ui.screens.search
+package com.project.ibooku.presentation.ui.feature.search
 
 import com.project.ibooku.domain.model.KeywordSearchResultModel
 

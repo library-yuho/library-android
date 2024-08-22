@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -34,11 +36,19 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.project.ibooku.presentation.R
-import com.project.ibooku.presentation.ui.screens.home.HomeScreen
-import com.project.ibooku.presentation.ui.screens.map.BookReviewReadMap
-import com.project.ibooku.presentation.ui.screens.search.BookSearchScreen
+import com.project.ibooku.presentation.ui.feature.book.BookDetailScreen
+import com.project.ibooku.presentation.ui.feature.home.HomeScreen
+import com.project.ibooku.presentation.ui.feature.map.BookReviewLocationMapScreen
+import com.project.ibooku.presentation.ui.feature.map.BookReviewReadMap
+import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
+import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewCompleteScreen
+import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewLocationScreen
+import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewOnboardingScreen
+import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewWriteScreen
+import com.project.ibooku.presentation.ui.feature.review.screen.BookSearchScreenAtReview
+import com.project.ibooku.presentation.ui.feature.search.BookSearchScreen
 import com.project.ibooku.presentation.ui.theme.Black
-import com.project.ibooku.presentation.ui.theme.Gray30
+import com.project.ibooku.presentation.ui.theme.Gray50
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
 import com.project.ibooku.presentation.ui.theme.White
 import dagger.hilt.android.AndroidEntryPoint
@@ -87,7 +97,7 @@ fun BottomNavigationBar(
 
     NavigationBar(
         containerColor = White,
-        contentColor = Gray30
+        contentColor = Gray50
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
@@ -124,9 +134,9 @@ fun BottomNavigationBar(
                 },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = SkyBlue10,
-                    unselectedIconColor = Gray30,
+                    unselectedIconColor = Gray50,
                     selectedTextColor = SkyBlue10,
-                    unselectedTextColor = Gray30,
+                    unselectedTextColor = Gray50,
                     indicatorColor = Color.Transparent
                 )
             )
@@ -151,32 +161,53 @@ private fun NavigationGraph(
         composable(NavItem.Menu.route) {
 
         }
-        composable(NavItem.BookSearch.route) {
-            BookSearchScreen(navController = navController)
+        composable(NavItem.BookSearch.route) { backStackEntry ->
+            val prevRoute = navController.previousBackStackEntry?.destination?.route
+            // 리뷰 온보딩에서 진입한 경우에는 리뷰용 검색 화면에 진입하도록 함.
+            if (prevRoute == NavItem.BookReviewOnboarding.route) {
+                val prevEntry = remember(backStackEntry){
+                    navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
+                }
+                BookSearchScreenAtReview(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
+            } else {
+                BookSearchScreen(navController = navController,)
+            }
         }
         composable(NavItem.BookDetail.route) {
-
+            BookDetailScreen(navController = navController)
         }
         composable(NavItem.BookNearLibraryMap.route) {
 
         }
-        composable(NavItem.BookReviewReadMap.route){
+        composable(NavItem.BookReviewReadMap.route) {
             BookReviewReadMap(navController = navController)
         }
         composable(NavItem.BookReviewOnboarding.route) {
-
+            BookReviewOnboardingScreen(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>())
         }
-        composable(NavItem.BookReviewWrite.route) {
-
+        composable(NavItem.BookReviewWrite.route) { backStackEntry ->
+            val prevEntry = remember(backStackEntry){
+                navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
+            }
+            BookReviewWriteScreen(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
         }
-        composable(NavItem.BookReviewLocation.route) {
-
+        composable(NavItem.BookReviewLocation.route) { backStackEntry ->
+            val prevEntry = remember(backStackEntry){
+                navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
+            }
+            BookReviewLocationScreen(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
         }
-        composable(NavItem.BookReviewLocationMap.route) {
-
+        composable(NavItem.BookReviewLocationMap.route) { backStackEntry ->
+            val prevEntry = remember(backStackEntry){
+                navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
+            }
+            BookReviewLocationMapScreen(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
         }
-        composable(NavItem.BookReviewComplete.route) {
-
+        composable(NavItem.BookReviewComplete.route) { backStackEntry ->
+            val prevEntry = remember(backStackEntry){
+                navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
+            }
+            BookReviewCompleteScreen(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
         }
     }
 }

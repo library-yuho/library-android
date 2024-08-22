@@ -1,4 +1,4 @@
-package com.project.ibooku.presentation.ui.screens.map
+package com.project.ibooku.presentation.ui.feature.map
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,7 +29,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,7 +42,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -62,12 +60,12 @@ import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberFusedLocationSource
 import com.naver.maps.map.overlay.OverlayImage
-import com.project.ibooku.presentation.base.Datetime
+import com.project.ibooku.presentation.common.Datetime
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.theme.Black
-import com.project.ibooku.presentation.ui.theme.Gray20
 import com.project.ibooku.presentation.ui.theme.Gray30
+import com.project.ibooku.presentation.ui.theme.Gray50
 import com.project.ibooku.presentation.ui.theme.IbookuTheme
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
 import com.project.ibooku.presentation.ui.theme.StarYellow
@@ -95,7 +93,7 @@ fun BookReviewReadMap(navController: NavController) {
             var mapUiSettings by remember {
                 mutableStateOf(
                     MapUiSettings(
-                        isLocationButtonEnabled = false,
+                        isLocationButtonEnabled = true,
                         isZoomGesturesEnabled = true,
                         isZoomControlEnabled = true,
                     )
@@ -138,7 +136,8 @@ fun BookReviewReadMap(navController: NavController) {
                                     it.lon
                                 )
                             ),
-                            captionText = "Marker in my house",
+                            captionText = it.bookTitle,
+                            captionRequestedWidth = 200.dp,
                             onClick = {
                                 isSheetOpen = true
                                 false
@@ -204,7 +203,7 @@ fun ReviewBottomSheet(
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = reviewItem.nickname,
-                    color = Gray20,
+                    color = Gray30,
                     fontSize = 12.sp,
                     fontFamily = notosanskr,
                     style = TextStyle(
@@ -255,7 +254,7 @@ fun ReviewBottomSheet(
                         context = LocalContext.current,
                         targetDateTime = targetDateTime
                     ),
-                    color = Gray20,
+                    color = Gray30,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     fontFamily = notosanskr,
@@ -286,7 +285,7 @@ fun ReviewBottomSheet(
 
             Text(
                 text = reviewItem.bookAuthors,
-                color = Gray30,
+                color = Gray50,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = notosanskr,
@@ -338,7 +337,7 @@ fun ReviewBottomSheet(
                     viewDetailState = !viewDetailState
                 },
                 text = stringResource(id = if (viewDetailState) R.string.read_review_fold else R.string.read_review_more_detail),
-                color = Gray20,
+                color = Gray30,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = notosanskr,
@@ -430,7 +429,7 @@ fun StarRatingBar(
         for (i in 1..maxStars) {
             val isSelected = i <= rating
             val icon = if (isSelected) Icons.Filled.Star else Icons.Default.Star
-            val iconTintColor = if (isSelected) StarYellow else Gray20
+            val iconTintColor = if (isSelected) StarYellow else Gray30
             Icon(
                 imageVector = icon,
                 contentDescription = null,
