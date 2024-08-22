@@ -1,4 +1,4 @@
-package com.project.ibooku.presentation.ui.screens.home
+package com.project.ibooku.presentation.ui.feature.home
 
 import com.project.ibooku.domain.model.PopularBooksModel
 

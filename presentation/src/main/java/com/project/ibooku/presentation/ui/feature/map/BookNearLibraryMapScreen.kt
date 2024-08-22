@@ -1,4 +1,4 @@
-package com.project.ibooku.presentation.ui.screens.map
+package com.project.ibooku.presentation.ui.feature.map
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize

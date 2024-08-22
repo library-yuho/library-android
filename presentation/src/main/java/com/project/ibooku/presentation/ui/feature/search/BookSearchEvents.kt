@@ -1,4 +1,4 @@
-package com.project.ibooku.presentation.ui.screens.search
+package com.project.ibooku.presentation.ui.feature.search
 
 sealed class BookSearchEvents {
     data class SearchTextChanged(val newText: String) : BookSearchEvents()

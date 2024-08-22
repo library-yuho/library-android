@@ -1,9 +1,12 @@
 package com.project.ibooku.domain.model
 
+import java.io.Serializable
+
 data class KeywordSearchResultModel(
     val searchedKeyword: String,
     val resultList: List<KeywordSearchResultItem>
 )
+
 
 data class KeywordSearchResultItem(
     val titleInfo: String,
@@ -13,5 +16,4 @@ data class KeywordSearchResultItem(
     val isbn: String,
     val className: String,
     val imageUrl: String
-)
-
+): Serializable

@@ -1,4 +1,4 @@
-package com.project.ibooku.presentation.ui.items
+package com.project.ibooku.presentation.items
 
 data class PopularBookItem(
     val rank: Int,

@@ -1,11 +1,8 @@
-package com.project.ibooku.presentation.ui.screens.home
+package com.project.ibooku.presentation.ui.feature.home
 
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.OverscrollEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +20,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.overscroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,7 +29,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -69,11 +64,12 @@ import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.BottomNavigationBar
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
+import com.project.ibooku.presentation.ui.base.LoadingIndicator
 import com.project.ibooku.presentation.ui.theme.Gray10
-import com.project.ibooku.presentation.ui.theme.Gray30
-import com.project.ibooku.presentation.ui.theme.Gray40
 import com.project.ibooku.presentation.ui.theme.Gray50
 import com.project.ibooku.presentation.ui.theme.Gray60
+import com.project.ibooku.presentation.ui.theme.Gray70
+import com.project.ibooku.presentation.ui.theme.Gray80
 import com.project.ibooku.presentation.ui.theme.IbookuTheme
 import com.project.ibooku.presentation.ui.theme.PlaceHolderColor
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
@@ -126,7 +122,9 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                         onReadReviewClick = {
                             navController.navigate(NavItem.BookReviewReadMap.route)
                         },
-                        onWriteReviewClick = {},
+                        onWriteReviewClick = {
+                            navController.navigate(NavItem.BookReviewOnboarding.route)
+                        },
                         onPopularBookClick = {}
                     )
                 }
@@ -208,20 +206,6 @@ fun HomeScreenPreview() {
     }
 
 }
-
-
-@Composable
-private fun LoadingIndicator(isLoading: Boolean, modifier: Modifier = Modifier) {
-    if (isLoading) {
-        Box(
-            modifier = modifier,
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
-    }
-}
-
 
 @Composable
 private fun HomeHeader(modifier: Modifier = Modifier, onSearchBarClick: () -> Unit) {
@@ -454,7 +438,7 @@ private fun HomeBodyReviewWrite(modifier: Modifier = Modifier, onWriteReviewClic
                     text = stringResource(id = R.string.home_body_review_write_desc),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Gray30
+                    color = Gray50
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -463,14 +447,14 @@ private fun HomeBodyReviewWrite(modifier: Modifier = Modifier, onWriteReviewClic
                     text = stringResource(id = R.string.home_body_review_write_title),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Gray50
+                    color = Gray70
                 )
             }
 
             Icon(
                 modifier = Modifier.size(24.dp),
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                tint = Gray40,
+                tint = Gray60,
                 contentDescription = null
             )
         }
@@ -516,7 +500,7 @@ private fun HomeBodyReviewRead(modifier: Modifier = Modifier, onReadReviewClick:
                         text = stringResource(id = descStrId),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Gray30
+                        color = Gray50
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -526,14 +510,14 @@ private fun HomeBodyReviewRead(modifier: Modifier = Modifier, onReadReviewClick:
                         text = stringResource(id = R.string.home_body_review_read_title),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Gray50
+                        color = Gray70
                     )
                 }
 
                 Icon(
                     modifier = Modifier.size(24.dp),
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    tint = Gray40,
+                    tint = Gray60,
                     contentDescription = null
                 )
             }
@@ -570,7 +554,7 @@ private fun HomeBodyPopularBook(
             Column {
                 Text(
                     text = stringResource(id = R.string.home_body_popular_book),
-                    color = Gray60,
+                    color = Gray80,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -580,7 +564,7 @@ private fun HomeBodyPopularBook(
                 /*TODO: 날짜 바인딩 */
                 Text(
                     text = "(24.07.24 ~ 24.07.30)",
-                    color = Gray30,
+                    color = Gray50,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -644,7 +628,7 @@ fun HomeBodyPopularBookItem(
         ) {
             Text(
                 text = item.ranking,
-                color = Gray50,
+                color = Gray70,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -663,7 +647,7 @@ fun HomeBodyPopularBookItem(
             Column {
                 Text(
                     text = item.bookName,
-                    color = Gray50,
+                    color = Gray70,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     style = TextStyle(
@@ -674,7 +658,7 @@ fun HomeBodyPopularBookItem(
                 )
                 Text(
                     text = item.authors,
-                    color = Gray30,
+                    color = Gray50,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium,
                     style = TextStyle(
@@ -698,7 +682,7 @@ private fun HomeBodyHelp(modifier: Modifier = Modifier, helpClickListener: HomeH
             text = stringResource(id = R.string.home_body_help),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
-            color = Gray60
+            color = Gray80
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -755,14 +739,14 @@ private fun HomeBodyHelpUserGuide(modifier: Modifier = Modifier, onUserGuideClic
                         text = stringResource(id = R.string.home_body_help_guide_title),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Gray50
+                        color = Gray70
                     )
 
                     Text(
                         text = stringResource(id = R.string.home_body_help_guide_desc),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Gray30
+                        color = Gray50
                     )
                 }
 
@@ -773,7 +757,7 @@ private fun HomeBodyHelpUserGuide(modifier: Modifier = Modifier, onUserGuideClic
                     Icon(
                         modifier = Modifier.size(20.dp),
                         imageVector = Icons.Default.Close,
-                        tint = Gray30,
+                        tint = Gray50,
                         contentDescription = null
                     )
                 }
@@ -824,14 +808,14 @@ private fun HomeBodyHelpHomepageAndCs(
                         text = stringResource(id = R.string.home_body_help_homepage_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
-                        color = Gray50
+                        color = Gray70
                     )
 
                     Text(
                         text = stringResource(id = R.string.home_body_help_homepage_desc),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Gray30
+                        color = Gray50
                     )
                 }
             }
@@ -871,14 +855,14 @@ private fun HomeBodyHelpHomepageAndCs(
                         text = stringResource(id = R.string.home_body_help_cs_title),
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
-                        color = Gray50
+                        color = Gray70
                     )
 
                     Text(
                         text = stringResource(id = R.string.home_body_help_cs_desc),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Medium,
-                        color = Gray30
+                        color = Gray50
                     )
                 }
             }

@@ -4,7 +4,6 @@
     <string name="nav_home">홈</string>
     <string name="nav_menu">메뉴</string>
 
-
     <string name="home_header_text"># 도서를 위한 모든 것, I Book U</string>
     <string name="home_header_search_place_holder">찾고 있는 도서가 있나요?</string>
     <string name="home_body_review">리뷰를 공유해보세요! 💬</string>
@@ -24,7 +23,6 @@
     <string name="home_body_help_cs_title">고객센터</string>
     <string name="home_body_help_cs_desc">FAQ, 1:1 문의</string>
 
-
     <string name="search_book_placeholder">도서명, 글쓴이, 출판사로 검색</string>
     <string name="search_book_recent_keyword_title">최근에 검색했어요 🔎</string>
     <string name="search_book_popular_keyword_title">이번 달 인기 키워드에요 ✨</string>
@@ -35,11 +33,32 @@
     <string name="read_review_more_detail">더보기</string>
     <string name="read_review_fold">접어두기</string>
 
+    <string name="review_onboarding_title">어떤 도서의 리뷰를\n남기려고 하시나요?</string>
+    <string name="review_onboarding_search">검색하기</string>
+
+    <string name="write_review_title">소중한 후기를\n들려주세요.</string>
+    <string name="write_review_content_title">자세한 내용을 들려주세요.</string>
+    <string name="write_review_content_placeholder">도서와 관련하여 10자 이상의 후기를 남겨주시면 다른 이용자들에게도 도움이 됩니다.</string>
+    <string name="write_review_spoiler_title">스포일러가 포함되어 있나요?</string>
+    <string name="write_review_spoiler_answer_yes">네, 포함되어 있습니다.</string>
+    <string name="write_review_spoiler_answer_no">아니오, 포함되어 있지 않습니다.</string>
+    <string name="write_review_write_complete">작성 완료</string>
+    <string name="write_review_location_title">독서 장소를 공유해보세요!</string>
+    <string name="write_review_map_location">지도에서 위치 찾기</string>
+    <string name="write_review_skip">건너뛰기</string>
+    <string name="write_review_complete_title">도서 리뷰 남기기 완료!</string>
+    <string name="write_review_complete_back">돌아가기</string>
+    <string name="write_review_location_map_select">선택하기</string>
+
     <string name="date_type_error">잘못된 접근입니다.</string>
     <string name="date_type_now">방금 전</string>
     <string name="date_type_minutes">#VALUE#분 전</string>
     <string name="date_type_hours">#VALUE#시간 전</string>
 
+    <string name="error_title_1">오류가 발생했습니다.</string>
+    <string name="error_msg_1">알 수 없는 오류가 발생했습니다.\n해당 증상이 지속될 시, 관리자에게 문의해주세요.</string>
+
     <string name="common_close">닫기</string>
+    <string name="common_done">확인</string>
     <string name="common_see_detail">자세히 보기</string>
 </resources>
