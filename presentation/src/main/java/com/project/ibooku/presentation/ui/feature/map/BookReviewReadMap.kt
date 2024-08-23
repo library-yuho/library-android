@@ -60,8 +60,8 @@ import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberFusedLocationSource
 import com.naver.maps.map.overlay.OverlayImage
-import com.project.ibooku.presentation.common.Datetime
 import com.project.ibooku.presentation.R
+import com.project.ibooku.presentation.common.Datetime
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.theme.Black
 import com.project.ibooku.presentation.ui.theme.Gray30
@@ -329,7 +329,7 @@ fun ReviewBottomSheet(
                     )
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(

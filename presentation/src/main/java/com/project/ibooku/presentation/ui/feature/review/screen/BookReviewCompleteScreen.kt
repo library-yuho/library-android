@@ -37,7 +37,10 @@ import com.project.ibooku.presentation.ui.theme.notosanskr
 
 
 @Composable
-fun BookReviewCompleteScreen(navController: NavHostController, viewModel: BookReviewViewModel = hiltViewModel()) {
+fun BookReviewCompleteScreen(
+    navController: NavHostController,
+    viewModel: BookReviewViewModel = hiltViewModel()
+) {
     BackHandler(enabled = true) {
         // 아무 작업도 하지 않음
     }

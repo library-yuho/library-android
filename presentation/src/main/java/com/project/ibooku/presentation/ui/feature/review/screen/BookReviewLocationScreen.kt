@@ -1,9 +1,7 @@
 package com.project.ibooku.presentation.ui.feature.review.screen
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,15 +10,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -54,7 +49,7 @@ fun BookReviewLocationScreen(
     val state = viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(state.value.isReviewUploadSuccess) {
-        if(state.value.isReviewUploadSuccess == true){
+        if (state.value.isReviewUploadSuccess == true) {
             navController.navigate(NavItem.BookReviewComplete.route)
         }
     }
@@ -63,7 +58,7 @@ fun BookReviewLocationScreen(
     IbookuTheme {
         Scaffold { innerPadding ->
 
-            if(state.value.isReviewUploadSuccess == false){
+            if (state.value.isReviewUploadSuccess == false) {
                 ErrorPopup(
                     onPositiveRequest = {
                         viewModel.onEvent(BookReviewEvents.OnErrorPopup)
@@ -71,7 +66,9 @@ fun BookReviewLocationScreen(
                 )
             }
 
-            Box(modifier = Modifier.background(White).padding(innerPadding)) {
+            Box(modifier = Modifier
+                .background(White)
+                .padding(innerPadding)) {
                 Column(
                     modifier = Modifier
                         .background(White)
@@ -97,7 +94,10 @@ fun BookReviewLocationScreen(
                     )
                 }
 
-                LoadingIndicator(isLoading = state.value.isLoading, modifier = Modifier.fillMaxSize())
+                LoadingIndicator(
+                    isLoading = state.value.isLoading,
+                    modifier = Modifier.fillMaxSize()
+                )
 
             }
         }
@@ -160,9 +160,9 @@ fun BookReviewLocationScreenBtnLayer(
 
 @Composable
 fun ErrorPopup(onPositiveRequest: () -> Unit) {
-        CommonDialog(
-            title = stringResource(id = R.string.error_title_1),
-            msg = stringResource(id = R.string.error_msg_1),
-            onPositiveRequest = onPositiveRequest
-        )
+    CommonDialog(
+        title = stringResource(id = R.string.error_title_1),
+        msg = stringResource(id = R.string.error_msg_1),
+        onPositiveRequest = onPositiveRequest
+    )
 }
