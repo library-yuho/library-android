@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.project.ibooku.core.util.Resources
 import com.project.ibooku.domain.model.KeywordSearchResultModel
 import com.project.ibooku.domain.usecase.KeywordSearchResultUseCase
+import com.project.ibooku.presentation.ui.feature.map.ReviewItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,11 +13,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class BookSearchViewModel @Inject constructor(
+class BookInfoViewModel @Inject constructor(
     val keywordSearchResultUseCase: KeywordSearchResultUseCase
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(BookSearchState())
+    private val _state = MutableStateFlow(BookInfoState())
     val state = _state.asStateFlow()
 
     // 이벤트 처리를 위한 함수
@@ -54,6 +55,56 @@ class BookSearchViewModel @Inject constructor(
                     relatedKeywordList = listOf()
                 )
                 getKeywordSearchResult()
+            }
+
+            is BookSearchEvents.BookSelected -> {
+                _state.value = _state.value.copy(
+                    selectedBook = event.selectedBook
+                )
+            }
+
+            is BookSearchEvents.ReviewOrderChanged -> {
+                _state.value = _state.value.copy(
+                    reviewOrder = event.reviewOrder
+                )
+                _state.value = when(event.reviewOrder){
+                    ReviewOrder.RECENT -> {
+                        _state.value.copy(
+                            selectedBookReviewList = _state.value.selectedBookReviewList.sortedByDescending { it.datetime }
+                        )
+                    }
+                    ReviewOrder.PAST -> {
+                        _state.value.copy(
+                            selectedBookReviewList = _state.value.selectedBookReviewList.sortedBy { it.datetime }
+                        )
+                    }
+                    ReviewOrder.HIGH_RATING -> {
+                        _state.value.copy(
+                            selectedBookReviewList = _state.value.selectedBookReviewList.sortedWith(
+                                compareByDescending<ReviewItem>{ it.rating }.thenByDescending { it.datetime }
+                            )
+                        )
+                    }
+                    ReviewOrder.LOW_RATING -> {
+                        _state.value.copy(
+                            selectedBookReviewList = _state.value.selectedBookReviewList.sortedWith(
+                                compareBy<ReviewItem>{ it.rating }.thenByDescending { it.datetime }
+                            )
+                        )
+                    }
+                }
+            }
+
+            is BookSearchEvents.OnIsNoContentExcludedChanged -> {
+                _state.value = _state.value.copy(
+                    isNoContentExcluded = _state.value.isNoContentExcluded.not(),
+                )
+            }
+
+            is BookSearchEvents.OnIsSpoilerExcluded -> {
+                _state.value = _state.value.copy(
+                    isSpoilerExcluded = _state.value.isSpoilerExcluded.not()
+                )
             }
         }
     }

@@ -30,9 +30,9 @@ import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.BaseHeader
-import com.project.ibooku.presentation.ui.base.BottomButton
-import com.project.ibooku.presentation.ui.base.CommonDialog
-import com.project.ibooku.presentation.ui.base.LoadingIndicator
+import com.project.ibooku.presentation.ui.base.BaseButton
+import com.project.ibooku.presentation.ui.base.BaseDialog
+import com.project.ibooku.presentation.ui.base.BaseLoadingIndicator
 import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
 import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.Gray70
@@ -94,7 +94,7 @@ fun BookReviewLocationScreen(
                     )
                 }
 
-                LoadingIndicator(
+                BaseLoadingIndicator(
                     isLoading = state.value.isLoading,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -140,14 +140,14 @@ fun BookReviewLocationScreenBtnLayer(
     onSkip: () -> Unit
 ) {
     Column(modifier = modifier) {
-        BottomButton(
+        BaseButton(
             text = stringResource(id = R.string.write_review_map_location),
             modifier = Modifier.fillMaxWidth(),
             margin = PaddingValues(0.dp),
             onClick = onMapLocation
         )
 
-        BottomButton(
+        BaseButton(
             text = stringResource(id = R.string.write_review_skip),
             modifier = Modifier.fillMaxWidth(),
             textColor = SkyBlue10,
@@ -160,7 +160,7 @@ fun BookReviewLocationScreenBtnLayer(
 
 @Composable
 fun ErrorPopup(onPositiveRequest: () -> Unit) {
-    CommonDialog(
+    BaseDialog(
         title = stringResource(id = R.string.error_title_1),
         msg = stringResource(id = R.string.error_msg_1),
         onPositiveRequest = onPositiveRequest

@@ -46,9 +46,20 @@
     <string name="write_review_location_title">독서 장소를 공유해보세요!</string>
     <string name="write_review_map_location">지도에서 위치 찾기</string>
     <string name="write_review_skip">건너뛰기</string>
-    <string name="write_review_complete_title">도서 리뷰 남기기 완료!</string>
+    <string name="write_review_complete_title">도서 후기 남기기 완료!</string>
     <string name="write_review_complete_back">돌아가기</string>
     <string name="write_review_location_map_select">선택하기</string>
+
+    <string name="book_detail_header_title">도서 상세 정보</string>
+    <string name="book_detail_search_library">도서관 찾기</string>
+    <string name="book_detail_write_review">후기 작성하기</string>
+    <string name="book_detail_exclude_no_content">내용이 없는 후기 제외</string>
+    <string name="book_detail_exclude_spoiler">스포일러 제외</string>
+    <string name="book_detail_review_title">이 도서의 후기에요 📕</string>
+    <string name="book_detail_order_recent">최신순</string>
+    <string name="book_detail_order_past">오래된순</string>
+    <string name="book_detail_order_high_rating">별점 높은순</string>
+    <string name="book_detail_order_low_rating">별점 낮은순</string>
 
     <string name="date_type_error">잘못된 접근입니다.</string>
     <string name="date_type_now">방금 전</string>
@@ -61,4 +72,5 @@
     <string name="common_close">닫기</string>
     <string name="common_done">확인</string>
     <string name="common_see_detail">자세히 보기</string>
+    <string name="common_spoiler">스포일러</string>
 </resources>

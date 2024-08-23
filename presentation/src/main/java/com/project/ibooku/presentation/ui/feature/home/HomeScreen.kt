@@ -64,7 +64,7 @@ import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.BottomNavigationBar
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
-import com.project.ibooku.presentation.ui.base.LoadingIndicator
+import com.project.ibooku.presentation.ui.base.BaseLoadingIndicator
 import com.project.ibooku.presentation.ui.theme.Gray10
 import com.project.ibooku.presentation.ui.theme.Gray50
 import com.project.ibooku.presentation.ui.theme.Gray60
@@ -129,7 +129,7 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                     )
                 }
 
-                LoadingIndicator(isLoading = homeState.value.isLoading, modifier = Modifier.fillMaxSize())
+                BaseLoadingIndicator(isLoading = homeState.value.isLoading, modifier = Modifier.fillMaxSize())
             }
 
         }

@@ -14,11 +14,13 @@ import kotlin.time.toDuration
 object Datetime {
     val ymdBarFormatter: DateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.KOREAN)
+    val ymdBarFormatter2: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyy.MM.dd", Locale.KOREAN)
     val serverTimeFormatter: DateTimeFormatter = ISO_OFFSET_DATE_TIME
 
     private const val MINUTES_UNIT_TO_SECONDS = 60
     private const val HOUR_UNIT_TO_SECONDS = MINUTES_UNIT_TO_SECONDS * 60
-    private const val DAY_UNIT_YO_SECONDS = HOUR_UNIT_TO_SECONDS * 60
+    private const val DAY_UNIT_TO_SECONDS = HOUR_UNIT_TO_SECONDS * 12
 
     fun getReviewDateTime(context: Context, targetDateTime: ZonedDateTime): String {
         val targetMilliSeconds = targetDateTime.toEpochSecond()
@@ -34,11 +36,11 @@ object Datetime {
                     diffSeconds.toDuration(DurationUnit.SECONDS).inWholeMinutes.toString()
                 )
 
-            diffSeconds < DAY_UNIT_YO_SECONDS -> context.resources.getString(R.string.date_type_hours).replace(
+            diffSeconds < DAY_UNIT_TO_SECONDS -> context.resources.getString(R.string.date_type_hours).replace(
                 "#VALUE#",
                 diffSeconds.toDuration(DurationUnit.SECONDS).inWholeHours.toString()
             )
-            else -> targetDateTime.format(ymdBarFormatter)
+            else -> targetDateTime.format(ymdBarFormatter2)
         }
     }
 }

@@ -34,7 +34,7 @@ import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.BaseHeader
-import com.project.ibooku.presentation.ui.base.BottomButton
+import com.project.ibooku.presentation.ui.base.BaseButton
 import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
 import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.Gray50
@@ -86,7 +86,7 @@ fun BookReviewWriteScreen(
                 val isBtnEnabled =
                     if (state.value.review.isEmpty()) true else state.value.isSpoiler != null
 
-                BottomButton(
+                BaseButton(
                     text = stringResource(id = R.string.write_review_write_complete),
                     modifier = Modifier.fillMaxWidth(),
                     enabled = isBtnEnabled,

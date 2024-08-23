@@ -66,15 +66,12 @@ import androidx.compose.ui.unit.sp
 import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.project.ibooku.domain.model.KeywordSearchResultItem
 import com.project.ibooku.domain.model.KeywordSearchResultModel
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
-import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
-import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.Black
 import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray50
@@ -91,7 +88,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun BookSearchScreen(
     navController: NavHostController,
-    viewModel: BookSearchViewModel = hiltViewModel()
+    viewModel: BookInfoViewModel = hiltViewModel()
 ) {
     StatusBarColorsTheme()
 
@@ -146,6 +143,7 @@ fun BookSearchScreen(
                     )
                 },
                 onResultItemClick = { result ->
+                    viewModel.onEvent(BookSearchEvents.BookSelected(result))
                     navController.navigate(NavItem.BookDetail.route)
                 }
             )

@@ -28,7 +28,7 @@ import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.BaseHeader
-import com.project.ibooku.presentation.ui.base.BottomButton
+import com.project.ibooku.presentation.ui.base.BaseButton
 import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.Gray70
 import com.project.ibooku.presentation.ui.theme.IbookuTheme
@@ -101,7 +101,7 @@ fun BookReviewOnboardingBody(modifier: Modifier = Modifier, onSearchBtnClick: ()
 
         Box(modifier = Modifier.weight(1f))
 
-        BottomButton(
+        BaseButton(
             text = stringResource(id = R.string.review_onboarding_search),
             modifier = Modifier.fillMaxWidth(),
             backgroundColor = SkyBlue10,
