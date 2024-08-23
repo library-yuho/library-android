@@ -27,3 +27,4 @@ val Gray70 = Color(0xFF3F3F3F)
 val Gray80 = Color(0xFF222222)
 
 val StarYellow = Color(0xFFFFE600)
+val SpoilerOrange = Color(0xFFFF9C64)

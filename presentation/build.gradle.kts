@@ -93,4 +93,7 @@ dependencies {
     // naver map
     implementation(libs.naver.map.compose)
     implementation(libs.naver.map.location)
+
+    // ratingbar
+    implementation(libs.ratingbar)
 }

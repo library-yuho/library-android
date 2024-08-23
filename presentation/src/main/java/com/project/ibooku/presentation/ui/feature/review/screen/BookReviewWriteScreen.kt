@@ -1,26 +1,25 @@
 package com.project.ibooku.presentation.ui.feature.review.screen
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -30,11 +29,12 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.gowtham.ratingbar.RatingBar
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.BaseHeader
-import com.project.ibooku.presentation.ui.base.BottomButton
+import com.project.ibooku.presentation.ui.base.BaseButton
 import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
 import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.Gray50
@@ -69,6 +69,7 @@ fun BookReviewWriteScreen(
 
                 BookReviewWriteScreenBody(
                     review = state.value.review,
+                    rating = state.value.rating,
                     isSpoiler = state.value.isSpoiler,
                     modifier = Modifier.weight(1f),
                     onReviewTextChanged = { text ->
@@ -76,13 +77,16 @@ fun BookReviewWriteScreen(
                     },
                     onSpoilerChanged = { isSpoiler ->
                         viewModel.onEvent(BookReviewEvents.SpoilerChanged(isSpoiler))
+                    },
+                    onRatingChanged = { rating ->
+                        viewModel.onEvent(BookReviewEvents.ReviewRatingChanged(rating))
                     }
                 )
 
                 val isBtnEnabled =
                     if (state.value.review.isEmpty()) true else state.value.isSpoiler != null
 
-                BottomButton(
+                BaseButton(
                     text = stringResource(id = R.string.write_review_write_complete),
                     modifier = Modifier.fillMaxWidth(),
                     enabled = isBtnEnabled,
@@ -100,10 +104,12 @@ fun BookReviewWriteScreen(
 @Composable
 fun BookReviewWriteScreenBody(
     review: String,
+    rating: Float,
     isSpoiler: Boolean?,
     modifier: Modifier = Modifier,
     onReviewTextChanged: (String) -> Unit,
-    onSpoilerChanged: (Boolean) -> Unit
+    onSpoilerChanged: (Boolean) -> Unit,
+    onRatingChanged: (Float) -> Unit
 ) {
     Column(modifier = modifier) {
         Spacer(modifier = Modifier.height(20.dp))
@@ -121,12 +127,19 @@ fun BookReviewWriteScreenBody(
             )
         )
         Spacer(modifier = Modifier.height(24.dp))
-        Box(
-            modifier = Modifier
-                .size(250.dp, 50.dp)
-                .padding(horizontal = 22.dp)
-                .background(SkyBlue10)
+
+        RatingBar(
+            modifier = Modifier.padding(horizontal = 22.dp),
+            value = rating,
+            size = 50.dp,
+            painterEmpty = painterResource(id = R.drawable.ic_review_star_empty),
+            painterFilled = painterResource(id = R.drawable.ic_review_start_filled),
+            onValueChange = onRatingChanged,
+            onRatingChanged = {
+                Log.d("TAG", "onRatingChanged: $it")
+            }
         )
+
         Spacer(modifier = Modifier.height(26.dp))
         Text(
             modifier = Modifier

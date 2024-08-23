@@ -46,6 +46,7 @@ import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewLocati
 import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewOnboardingScreen
 import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewWriteScreen
 import com.project.ibooku.presentation.ui.feature.review.screen.BookSearchScreenAtReview
+import com.project.ibooku.presentation.ui.feature.search.BookInfoViewModel
 import com.project.ibooku.presentation.ui.feature.search.BookSearchScreen
 import com.project.ibooku.presentation.ui.theme.Black
 import com.project.ibooku.presentation.ui.theme.Gray50
@@ -173,8 +174,11 @@ private fun NavigationGraph(
                 BookSearchScreen(navController = navController,)
             }
         }
-        composable(NavItem.BookDetail.route) {
-            BookDetailScreen(navController = navController)
+        composable(NavItem.BookDetail.route) { backStackEntry ->
+            val prevEntry = remember(backStackEntry){
+                navController.getBackStackEntry(NavItem.BookSearch.route)
+            }
+            BookDetailScreen(navController = navController, viewModel = hiltViewModel<BookInfoViewModel>(prevEntry))
         }
         composable(NavItem.BookNearLibraryMap.route) {
 

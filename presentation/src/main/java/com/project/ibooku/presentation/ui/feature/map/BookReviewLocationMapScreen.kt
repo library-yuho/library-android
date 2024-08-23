@@ -44,9 +44,8 @@ import com.naver.maps.map.compose.rememberFusedLocationSource
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
-import com.project.ibooku.presentation.ui.base.BottomButton
-import com.project.ibooku.presentation.ui.base.CommonDialog
-import com.project.ibooku.presentation.ui.base.LoadingIndicator
+import com.project.ibooku.presentation.ui.base.BaseDialog
+import com.project.ibooku.presentation.ui.base.BaseLoadingIndicator
 import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
 import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.IbookuTheme
@@ -89,7 +88,7 @@ fun BookReviewLocationMapScreen(
     var cameraPositionState = rememberCameraPositionState()
 
     LaunchedEffect(state.value.isReviewUploadSuccess) {
-        if(state.value.isReviewUploadSuccess == true){
+        if (state.value.isReviewUploadSuccess == true) {
             navController.navigate(NavItem.BookReviewComplete.route)
         }
     }
@@ -99,8 +98,8 @@ fun BookReviewLocationMapScreen(
 
     IbookuTheme {
         Scaffold { innerPadding ->
-            if(state.value.isReviewUploadSuccess == false) {
-                CommonDialog(
+            if (state.value.isReviewUploadSuccess == false) {
+                BaseDialog(
                     title = stringResource(id = R.string.error_title_1),
                     msg = stringResource(id = R.string.error_msg_1),
                     onPositiveRequest = {
@@ -146,7 +145,12 @@ fun BookReviewLocationMapScreen(
                     contentPadding = PaddingValues(vertical = 15.dp),
                     onClick = {
                         val latlng = cameraPositionState.position.target
-                        viewModel.onEvent(BookReviewEvents.RecordMapLocation(latlng.latitude, latlng.longitude))
+                        viewModel.onEvent(
+                            BookReviewEvents.RecordMapLocation(
+                                latlng.latitude,
+                                latlng.longitude
+                            )
+                        )
                     }
                 ) {
                     Text(
@@ -159,7 +163,10 @@ fun BookReviewLocationMapScreen(
                     )
                 }
 
-                LoadingIndicator(isLoading = state.value.isLoading, modifier = Modifier.fillMaxSize())
+                BaseLoadingIndicator(
+                    isLoading = state.value.isLoading,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }

@@ -14,13 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
@@ -39,7 +35,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -60,19 +55,20 @@ import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberFusedLocationSource
 import com.naver.maps.map.overlay.OverlayImage
-import com.project.ibooku.presentation.common.Datetime
 import com.project.ibooku.presentation.R
+import com.project.ibooku.presentation.common.Datetime
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
+import com.project.ibooku.presentation.ui.base.StarRatingBar
 import com.project.ibooku.presentation.ui.theme.Black
 import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray50
 import com.project.ibooku.presentation.ui.theme.IbookuTheme
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
-import com.project.ibooku.presentation.ui.theme.StarYellow
 import com.project.ibooku.presentation.ui.theme.White
 import com.project.ibooku.presentation.ui.theme.notosanskr
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 
 @OptIn(ExperimentalNaverMapApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -108,10 +104,11 @@ fun BookReviewReadMap(navController: NavController) {
                     bookAuthors = "김은희",
                     rating = 4.5,
                     age = 33,
-                    datetime = "2024-08-21T21:10:59.6475673+09:00",
+                    datetime = LocalDateTime.parse("2023-08-21T21:10:59.6475673+09:00", Datetime.serverTimeFormatter).atZone(ZoneId.of("Asia/Seoul")),
                     nickname = "cdcdefg4",
                     lat = 37.50365559324391,
-                    lon = 126.93329593741983
+                    lon = 126.93329593741983,
+                    isSpoiler = false
                 )
             )
 
@@ -173,9 +170,8 @@ fun ReviewBottomSheet(
 ) {
     var contentHeight by remember { mutableStateOf(0.dp) }
 
-    var viewDetailState by remember {
-        mutableStateOf(false)
-    }
+    var isExpanded by remember { mutableStateOf(false) }
+    var isEllipsized by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         modifier = modifier,
@@ -246,13 +242,10 @@ fun ReviewBottomSheet(
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                val targetDateTime =
-                    LocalDateTime.parse(reviewItem.datetime, Datetime.serverTimeFormatter)
-                        .atZone(ZoneId.of("Asia/Seoul"))
                 Text(
                     text = Datetime.getReviewDateTime(
                         context = LocalContext.current,
-                        targetDateTime = targetDateTime
+                        targetDateTime = reviewItem.datetime
                     ),
                     color = Gray30,
                     fontSize = 12.sp,
@@ -296,27 +289,18 @@ fun ReviewBottomSheet(
                 )
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            if (reviewItem.review.isNotBlank()) {
+                Spacer(modifier = Modifier.height(14.dp))
 
-            if (viewDetailState) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = reviewItem.review,
-                    color = Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = notosanskr,
-                    style = TextStyle(
-                        platformStyle = PlatformTextStyle(
-                            includeFontPadding = false
-                        )
-                    )
-                )
-            } else {
-                Text(
-                    modifier = modifier,
-                    text = reviewItem.review,
-                    maxLines = 3,
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 3,
+                    onTextLayout = { textLayoutResult ->
+                        if (!isExpanded) {
+                            isEllipsized = textLayoutResult.hasVisualOverflow
+                        }
+                    },
                     overflow = TextOverflow.Ellipsis,
                     color = Black,
                     fontSize = 16.sp,
@@ -329,20 +313,22 @@ fun ReviewBottomSheet(
                     )
                 )
             }
-            
-            Spacer(modifier = Modifier.height(4.dp))
 
-            Text(
-                modifier = Modifier.clickable {
-                    viewDetailState = !viewDetailState
-                },
-                text = stringResource(id = if (viewDetailState) R.string.read_review_fold else R.string.read_review_more_detail),
-                color = Gray30,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                fontFamily = notosanskr,
-                style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
-            )
+            if (isEllipsized) {
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    modifier = Modifier.clickable {
+                        isExpanded = !isExpanded
+                    },
+                    text = stringResource(id = if (isExpanded) R.string.read_review_fold else R.string.read_review_more_detail),
+                    color = Gray30,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = notosanskr,
+                    style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -403,44 +389,10 @@ fun ReviewBottomSheet(
     }
 
     // BottomSheet가 열릴 때 콘텐츠 높이에 따라 상태 전환
-    LaunchedEffect(viewDetailState) {
-        if (viewDetailState && sheetState.isVisible) {
+    LaunchedEffect(isExpanded) {
+        if (isExpanded && sheetState.isVisible) {
             if (contentHeight > (screenHeight / 2)) {
                 sheetState.expand()
-            }
-        }
-    }
-}
-
-
-@Composable
-fun StarRatingBar(
-    maxStars: Int = 5,
-    rating: Float,
-) {
-    val density = LocalDensity.current.density
-    val starSize = (8f * density).dp
-    val starSpacing = (0.5f * density).dp
-
-    Row(
-        modifier = Modifier.selectableGroup(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        for (i in 1..maxStars) {
-            val isSelected = i <= rating
-            val icon = if (isSelected) Icons.Filled.Star else Icons.Default.Star
-            val iconTintColor = if (isSelected) StarYellow else Gray30
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTintColor,
-                modifier = Modifier
-                    .width(starSize)
-                    .height(starSize)
-            )
-
-            if (i < maxStars) {
-                Spacer(modifier = Modifier.width(starSpacing))
             }
         }
     }
@@ -450,12 +402,13 @@ fun StarRatingBar(
 data class ReviewItem(
     val reviewId: String,
     val nickname: String,
-    val datetime: String,
+    val datetime: ZonedDateTime,
     val age: Int,
     val rating: Double,
     val bookTitle: String,
     val bookAuthors: String,
     val review: String,
     val lat: Double,
-    val lon: Double
+    val lon: Double,
+    val isSpoiler: Boolean
 )

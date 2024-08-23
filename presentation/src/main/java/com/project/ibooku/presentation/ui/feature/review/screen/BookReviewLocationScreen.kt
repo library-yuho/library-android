@@ -1,9 +1,8 @@
 package com.project.ibooku.presentation.ui.feature.review.screen
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -11,15 +10,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -34,8 +30,9 @@ import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.BaseHeader
-import com.project.ibooku.presentation.ui.base.BottomButton
-import com.project.ibooku.presentation.ui.base.CommonDialog
+import com.project.ibooku.presentation.ui.base.BaseButton
+import com.project.ibooku.presentation.ui.base.BaseDialog
+import com.project.ibooku.presentation.ui.base.BaseLoadingIndicator
 import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
 import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.Gray70
@@ -52,7 +49,7 @@ fun BookReviewLocationScreen(
     val state = viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(state.value.isReviewUploadSuccess) {
-        if(state.value.isReviewUploadSuccess == true){
+        if (state.value.isReviewUploadSuccess == true) {
             navController.navigate(NavItem.BookReviewComplete.route)
         }
     }
@@ -61,7 +58,7 @@ fun BookReviewLocationScreen(
     IbookuTheme {
         Scaffold { innerPadding ->
 
-            if(state.value.isReviewUploadSuccess == false){
+            if (state.value.isReviewUploadSuccess == false) {
                 ErrorPopup(
                     onPositiveRequest = {
                         viewModel.onEvent(BookReviewEvents.OnErrorPopup)
@@ -69,29 +66,39 @@ fun BookReviewLocationScreen(
                 )
             }
 
-            Column(
-                modifier = Modifier
-                    .background(White)
-                    .padding(innerPadding)
-            ) {
-                BaseHeader(onBackPressed = {
-                    viewModel.onEvent(BookReviewEvents.OnBackPressedAtReviewWrite)
-                    navController.popBackStack()
-                })
-                BookReviewLocationScreenBody(
+            Box(modifier = Modifier
+                .background(White)
+                .padding(innerPadding)) {
+                Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f)
+                        .background(White)
+                        .padding(innerPadding)
+                ) {
+                    BaseHeader(onBackPressed = {
+                        viewModel.onEvent(BookReviewEvents.OnBackPressedAtReviewWrite)
+                        navController.popBackStack()
+                    })
+                    BookReviewLocationScreenBody(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                    )
+                    BookReviewLocationScreenBtnLayer(
+                        modifier = Modifier.fillMaxWidth(),
+                        onMapLocation = {
+                            navController.navigate(NavItem.BookReviewLocationMap.route)
+                        },
+                        onSkip = {
+                            viewModel.onEvent(BookReviewEvents.SkipLocation)
+                        }
+                    )
+                }
+
+                BaseLoadingIndicator(
+                    isLoading = state.value.isLoading,
+                    modifier = Modifier.fillMaxSize()
                 )
-                BookReviewLocationScreenBtnLayer(
-                    modifier = Modifier.fillMaxWidth(),
-                    onMapLocation = {
-                        navController.navigate(NavItem.BookReviewLocationMap.route)
-                    },
-                    onSkip = {
-                        viewModel.onEvent(BookReviewEvents.SkipLocation)
-                    }
-                )
+
             }
         }
     }
@@ -133,14 +140,14 @@ fun BookReviewLocationScreenBtnLayer(
     onSkip: () -> Unit
 ) {
     Column(modifier = modifier) {
-        BottomButton(
+        BaseButton(
             text = stringResource(id = R.string.write_review_map_location),
             modifier = Modifier.fillMaxWidth(),
             margin = PaddingValues(0.dp),
             onClick = onMapLocation
         )
 
-        BottomButton(
+        BaseButton(
             text = stringResource(id = R.string.write_review_skip),
             modifier = Modifier.fillMaxWidth(),
             textColor = SkyBlue10,
@@ -153,9 +160,9 @@ fun BookReviewLocationScreenBtnLayer(
 
 @Composable
 fun ErrorPopup(onPositiveRequest: () -> Unit) {
-        CommonDialog(
-            title = stringResource(id = R.string.error_title_1),
-            msg = stringResource(id = R.string.error_msg_1),
-            onPositiveRequest = onPositiveRequest
-        )
+    BaseDialog(
+        title = stringResource(id = R.string.error_title_1),
+        msg = stringResource(id = R.string.error_msg_1),
+        onPositiveRequest = onPositiveRequest
+    )
 }

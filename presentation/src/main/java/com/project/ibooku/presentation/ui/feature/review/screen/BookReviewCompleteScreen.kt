@@ -27,7 +27,7 @@ import androidx.navigation.NavHostController
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
-import com.project.ibooku.presentation.ui.base.BottomButton
+import com.project.ibooku.presentation.ui.base.BaseButton
 import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.Gray70
 import com.project.ibooku.presentation.ui.theme.IbookuTheme
@@ -37,7 +37,10 @@ import com.project.ibooku.presentation.ui.theme.notosanskr
 
 
 @Composable
-fun BookReviewCompleteScreen(navController: NavHostController, viewModel: BookReviewViewModel = hiltViewModel()) {
+fun BookReviewCompleteScreen(
+    navController: NavHostController,
+    viewModel: BookReviewViewModel = hiltViewModel()
+) {
     BackHandler(enabled = true) {
         // 아무 작업도 하지 않음
     }
@@ -70,7 +73,7 @@ fun BookReviewCompleteScreen(navController: NavHostController, viewModel: BookRe
 
                 Box(modifier = Modifier.weight(1f))
 
-                BottomButton(
+                BaseButton(
                     text = stringResource(id = R.string.write_review_complete_back),
                     modifier = Modifier.fillMaxWidth(),
                     backgroundColor = SkyBlue10,

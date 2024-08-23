@@ -15,15 +15,17 @@ import com.project.ibooku.presentation.ui.theme.IbookuTheme
 
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
-fun BookNearLibraryMapScreen(navController: NavHostController){
+fun BookNearLibraryMapScreen(navController: NavHostController) {
     StatusBarColorsTheme()
 
-    IbookuTheme{
+    IbookuTheme {
         Scaffold { innerPadding ->
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)) {
-                    NaverMap(modifier = Modifier.fillMaxSize())
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                NaverMap(modifier = Modifier.fillMaxSize())
             }
         }
     }

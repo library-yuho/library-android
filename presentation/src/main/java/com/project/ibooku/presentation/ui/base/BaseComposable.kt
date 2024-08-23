@@ -1,5 +1,6 @@
 package com.project.ibooku.presentation.ui.base
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -11,10 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -28,28 +32,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.project.ibooku.presentation.R
-import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.theme.Black
 import com.project.ibooku.presentation.ui.theme.Gray20
+import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray40
 import com.project.ibooku.presentation.ui.theme.Gray50
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
+import com.project.ibooku.presentation.ui.theme.StarYellow
 import com.project.ibooku.presentation.ui.theme.White
 import com.project.ibooku.presentation.ui.theme.notosanskr
 
 
 @Composable
-fun BaseHeader(modifier: Modifier = Modifier, onBackPressed: () -> Unit) {
+fun BaseHeader(modifier: Modifier = Modifier, headerTitle: String = "", onBackPressed: () -> Unit) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
@@ -70,24 +77,43 @@ fun BaseHeader(modifier: Modifier = Modifier, onBackPressed: () -> Unit) {
                     contentDescription = null
                 )
             }
+
+            if (headerTitle.isNotEmpty()) {
+                Text(
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center,
+                    text = headerTitle,
+                    color = Black,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = notosanskr,
+                    style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false)),
+                )
+            }
+
+            Spacer(modifier = Modifier.size(36.dp))
         }
     }
 }
 
 @Composable
-fun LoadingIndicator(isLoading: Boolean, modifier: Modifier = Modifier) {
+fun BaseLoadingIndicator(
+    isLoading: Boolean,
+    color: Color = SkyBlue10,
+    modifier: Modifier = Modifier
+) {
     if (isLoading) {
         Box(
             modifier = modifier,
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator()
+            CircularProgressIndicator(color = color)
         }
     }
 }
 
 @Composable
-fun CommonDialog(
+fun BaseDialog(
     title: String,
     msg: String = "",
     onPositiveRequest: () -> Unit,
@@ -182,7 +208,7 @@ fun CommonDialog(
 }
 
 @Composable
-fun BottomButton(
+fun BaseButton(
     text: String,
     modifier: Modifier = Modifier,
     margin: PaddingValues = PaddingValues(0.dp),
@@ -196,18 +222,24 @@ fun BottomButton(
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
-    Box(modifier = modifier.padding(margin)){
+    Box(modifier = modifier.padding(margin)) {
         TextButton(
             modifier = Modifier
-                .fillMaxWidth().apply{
-                    if(round.value > 0){
-                        clip(RoundedCornerShape(round))
+                .fillMaxWidth()
+                .then(
+                    if (border.value > 0) {
+                        Modifier.border(
+                            width = border,
+                            color = borderColor,
+                            shape = RoundedCornerShape(round)
+                        )
+                    }else{
+                        Modifier
                     }
-                    if(border.value > 0){
-                        border(width = border, color = borderColor, shape = RoundedCornerShape(round))
-                    }
-                }.background(if(enabled) backgroundColor else disabledBackgroundColor),
-            shape = if(round.value > 0) RoundedCornerShape(round) else RectangleShape,
+                )
+                .clip(RoundedCornerShape(round))
+                .background(if (enabled) backgroundColor else disabledBackgroundColor),
+            shape = if (round.value > 0) RoundedCornerShape(round) else RectangleShape,
             contentPadding = contentPadding,
             enabled = enabled,
             onClick = onClick
@@ -220,6 +252,40 @@ fun BottomButton(
                 fontFamily = notosanskr,
                 style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
             )
+        }
+    }
+}
+
+
+@Composable
+fun StarRatingBar(
+    maxStars: Int = 5,
+    rating: Float,
+) {
+    val density = LocalDensity.current.density
+    val starSize = (8f * density).dp
+    val starSpacing = (0.5f * density).dp
+
+    Row(
+        modifier = Modifier.selectableGroup(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        for (i in 1..maxStars) {
+            val isSelected = i <= rating
+            val icon = if (isSelected) Icons.Filled.Star else Icons.Default.Star
+            val iconTintColor = if (isSelected) StarYellow else Gray30
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTintColor,
+                modifier = Modifier
+                    .width(starSize)
+                    .height(starSize)
+            )
+
+            if (i < maxStars) {
+                Spacer(modifier = Modifier.width(starSpacing))
+            }
         }
     }
 }
