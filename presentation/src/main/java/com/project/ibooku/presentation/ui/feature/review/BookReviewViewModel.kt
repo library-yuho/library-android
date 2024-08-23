@@ -110,6 +110,12 @@ class BookReviewViewModel @Inject constructor(
                     isReviewUploadSuccess = null
                 )
             }
+
+            is BookReviewEvents.ReviewRatingChanged -> {
+                _state.value = _state.value.copy(
+                    rating = event.rating
+                )
+            }
         }
         Log.d("BookReviewViewModel", "event: ${event}")
         Log.d("BookReviewViewModel", "state: ${_state.value}")

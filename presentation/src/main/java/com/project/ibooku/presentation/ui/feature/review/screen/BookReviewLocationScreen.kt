@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +37,7 @@ import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.BaseHeader
 import com.project.ibooku.presentation.ui.base.BottomButton
 import com.project.ibooku.presentation.ui.base.CommonDialog
+import com.project.ibooku.presentation.ui.base.LoadingIndicator
 import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
 import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.Gray70
@@ -69,29 +71,34 @@ fun BookReviewLocationScreen(
                 )
             }
 
-            Column(
-                modifier = Modifier
-                    .background(White)
-                    .padding(innerPadding)
-            ) {
-                BaseHeader(onBackPressed = {
-                    viewModel.onEvent(BookReviewEvents.OnBackPressedAtReviewWrite)
-                    navController.popBackStack()
-                })
-                BookReviewLocationScreenBody(
+            Box(modifier = Modifier.background(White).padding(innerPadding)) {
+                Column(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .weight(1f)
-                )
-                BookReviewLocationScreenBtnLayer(
-                    modifier = Modifier.fillMaxWidth(),
-                    onMapLocation = {
-                        navController.navigate(NavItem.BookReviewLocationMap.route)
-                    },
-                    onSkip = {
-                        viewModel.onEvent(BookReviewEvents.SkipLocation)
-                    }
-                )
+                        .background(White)
+                        .padding(innerPadding)
+                ) {
+                    BaseHeader(onBackPressed = {
+                        viewModel.onEvent(BookReviewEvents.OnBackPressedAtReviewWrite)
+                        navController.popBackStack()
+                    })
+                    BookReviewLocationScreenBody(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                    )
+                    BookReviewLocationScreenBtnLayer(
+                        modifier = Modifier.fillMaxWidth(),
+                        onMapLocation = {
+                            navController.navigate(NavItem.BookReviewLocationMap.route)
+                        },
+                        onSkip = {
+                            viewModel.onEvent(BookReviewEvents.SkipLocation)
+                        }
+                    )
+                }
+
+                LoadingIndicator(isLoading = state.value.isLoading, modifier = Modifier.fillMaxSize())
+
             }
         }
     }
