@@ -1,4 +1,4 @@
-package com.project.ibooku.domain.model
+package com.project.ibooku.domain.model.external
 
 data class PopularBooksModel(
     val ranking: String,

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.ibooku.presentation.common.Datetime
 import com.project.ibooku.core.util.Resources
-import com.project.ibooku.domain.usecase.PopularBooksUseCase
+import com.project.ibooku.domain.usecase.external.PopularBooksUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -1,7 +1,7 @@
 package com.project.ibooku.presentation.ui.feature.search
 
-import com.project.ibooku.domain.model.KeywordSearchResultItem
-import com.project.ibooku.domain.model.KeywordSearchResultModel
+import com.project.ibooku.domain.model.external.KeywordSearchResultItem
+import com.project.ibooku.domain.model.external.KeywordSearchResultModel
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.dummy.DummyDataList
 import com.project.ibooku.presentation.ui.feature.map.ReviewItem

@@ -2,6 +2,7 @@ package com.project.ibooku.presentation.ui.feature.book
 
 import android.annotation.SuppressLint
 import android.text.Html
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -56,7 +57,7 @@ import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.project.ibooku.domain.model.KeywordSearchResultItem
+import com.project.ibooku.domain.model.external.KeywordSearchResultItem
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.common.Datetime
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
@@ -83,8 +84,6 @@ import me.onebone.toolbar.ScrollStrategy
 import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 @Composable
 fun BookDetailScreen(navController: NavController, viewModel: BookInfoViewModel = hiltViewModel()) {
@@ -707,7 +706,7 @@ fun BookDetailReviewItem(reviewItem: ReviewItem, modifier: Modifier = Modifier) 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().animateContentSize(),
                 text = reviewItem.review,
                 maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                 onTextLayout = { textLayoutResult ->

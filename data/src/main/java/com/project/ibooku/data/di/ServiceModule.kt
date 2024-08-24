@@ -2,8 +2,11 @@ package com.project.ibooku.data.di
 
 import com.project.ibooku.data.BuildConfig
 import com.project.ibooku.data.remote.Domain
-import com.project.ibooku.data.remote.service.CentralService
-import com.project.ibooku.data.remote.service.NaruService
+import com.project.ibooku.data.remote.service.external.CentralService
+import com.project.ibooku.data.remote.service.external.NaruService
+import com.project.ibooku.data.remote.service.general.BookService
+import com.project.ibooku.data.remote.service.general.ReviewService
+import com.project.ibooku.data.remote.service.general.UserService
 import com.skydoves.sandwich.retrofit.adapters.ApiResponseCallAdapterFactory
 import dagger.Module
 import dagger.Provides
@@ -18,12 +21,12 @@ import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
-object RetrofitModule {
+object ServiceModule {
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    private fun getMatchedHttpClient(apiKey: String?): OkHttpClient =
+    private fun getMatchedHttpClient(apiKey: String? = null): OkHttpClient =
         OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
             .addInterceptor { chain ->
@@ -69,7 +72,7 @@ object RetrofitModule {
 
     @Provides
     @Singleton
-    fun provideCentralService(): CentralService{
+    fun provideCentralService(): CentralService {
         val centralRetrofit = Retrofit.Builder()
             .baseUrl(Domain.CENTRAL)
             .client(getMatchedHttpClient(BuildConfig.CENTRAL_API_KEY))
@@ -79,4 +82,39 @@ object RetrofitModule {
         return centralRetrofit.create(CentralService::class.java)
     }
 
+    @Provides
+    @Singleton
+    fun provideUserService(): UserService {
+        val generalRetrofit = Retrofit.Builder()
+            .baseUrl(Domain.GENERAL)
+            .client(getMatchedHttpClient())
+            .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        return generalRetrofit.create(UserService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideReviewService(): ReviewService {
+        val generalRetrofit = Retrofit.Builder()
+            .baseUrl(Domain.GENERAL)
+            .client(getMatchedHttpClient())
+            .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        return generalRetrofit.create(ReviewService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBookService(): BookService {
+        val generalRetrofit = Retrofit.Builder()
+            .baseUrl(Domain.GENERAL)
+            .client(getMatchedHttpClient())
+            .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+        return generalRetrofit.create(BookService::class.java)
+    }
 }

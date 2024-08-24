@@ -171,7 +171,7 @@ private fun NavigationGraph(
                 }
                 BookSearchScreenAtReview(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
             } else {
-                BookSearchScreen(navController = navController,)
+                BookSearchScreen(navController = navController)
             }
         }
         composable(NavItem.BookDetail.route) { backStackEntry ->

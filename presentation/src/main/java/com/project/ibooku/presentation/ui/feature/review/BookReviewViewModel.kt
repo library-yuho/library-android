@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.ibooku.core.util.Resources
-import com.project.ibooku.domain.model.KeywordSearchResultModel
-import com.project.ibooku.domain.usecase.KeywordSearchResultUseCase
+import com.project.ibooku.domain.model.external.KeywordSearchResultModel
+import com.project.ibooku.domain.usecase.external.KeywordSearchResultUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
