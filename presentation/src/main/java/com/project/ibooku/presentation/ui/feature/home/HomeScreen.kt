@@ -59,7 +59,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import com.project.ibooku.data.remote.UrlLink.CENTRAL_HOMEPAGE_URL
-import com.project.ibooku.domain.model.PopularBooksModel
+import com.project.ibooku.domain.model.external.PopularBooksModel
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.BottomNavigationBar
 import com.project.ibooku.presentation.ui.NavItem

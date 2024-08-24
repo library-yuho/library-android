@@ -1,4 +1,4 @@
-package com.project.ibooku.data.remote.service
+package com.project.ibooku.data.remote.service.external
 
 import com.project.ibooku.data.remote.response.ResPopularBooks
 import com.skydoves.sandwich.ApiResponse

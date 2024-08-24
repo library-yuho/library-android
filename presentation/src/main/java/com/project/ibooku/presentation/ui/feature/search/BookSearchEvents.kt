@@ -1,6 +1,6 @@
 package com.project.ibooku.presentation.ui.feature.search
 
-import com.project.ibooku.domain.model.KeywordSearchResultItem
+import com.project.ibooku.domain.model.external.KeywordSearchResultItem
 
 sealed class BookSearchEvents {
     data class SearchTextChanged(val newText: String) : BookSearchEvents()

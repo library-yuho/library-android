@@ -3,8 +3,8 @@ package com.project.ibooku.presentation.ui.feature.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.ibooku.core.util.Resources
-import com.project.ibooku.domain.model.KeywordSearchResultModel
-import com.project.ibooku.domain.usecase.KeywordSearchResultUseCase
+import com.project.ibooku.domain.model.external.KeywordSearchResultModel
+import com.project.ibooku.domain.usecase.external.KeywordSearchResultUseCase
 import com.project.ibooku.presentation.ui.feature.map.ReviewItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

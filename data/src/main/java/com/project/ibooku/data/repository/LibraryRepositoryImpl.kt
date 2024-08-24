@@ -1,11 +1,11 @@
 package com.project.ibooku.data.repository
 
 import com.project.ibooku.core.util.Resources
-import com.project.ibooku.data.remote.service.CentralService
-import com.project.ibooku.data.remote.service.NaruService
-import com.project.ibooku.domain.model.KeywordSearchResultItem
-import com.project.ibooku.domain.model.KeywordSearchResultModel
-import com.project.ibooku.domain.model.PopularBooksModel
+import com.project.ibooku.data.remote.service.external.CentralService
+import com.project.ibooku.data.remote.service.external.NaruService
+import com.project.ibooku.domain.model.external.KeywordSearchResultItem
+import com.project.ibooku.domain.model.external.KeywordSearchResultModel
+import com.project.ibooku.domain.model.external.PopularBooksModel
 import com.project.ibooku.domain.respository.LibraryRepository
 import com.skydoves.sandwich.retrofit.errorBody
 import com.skydoves.sandwich.suspendOnError

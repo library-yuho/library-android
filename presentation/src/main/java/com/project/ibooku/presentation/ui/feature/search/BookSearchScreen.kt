@@ -67,8 +67,8 @@ import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.project.ibooku.domain.model.KeywordSearchResultItem
-import com.project.ibooku.domain.model.KeywordSearchResultModel
+import com.project.ibooku.domain.model.external.KeywordSearchResultItem
+import com.project.ibooku.domain.model.external.KeywordSearchResultModel
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
