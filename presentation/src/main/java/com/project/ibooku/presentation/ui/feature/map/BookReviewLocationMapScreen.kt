@@ -81,9 +81,6 @@ fun BookReviewLocationMapScreen(
         )
     }
 
-    var mapHeightPx by remember {
-        mutableIntStateOf(0)
-    }
 
     var cameraPositionState = rememberCameraPositionState()
 
@@ -115,10 +112,7 @@ fun BookReviewLocationMapScreen(
             ) {
                 NaverMap(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .onGloballyPositioned { layoutCoordinates ->
-                            mapHeightPx = layoutCoordinates.size.height
-                        },
+                        .fillMaxSize(),
                     cameraPositionState = cameraPositionState,
                     locationSource = rememberFusedLocationSource(),
                     properties = mapProperties,

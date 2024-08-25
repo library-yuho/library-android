@@ -2,9 +2,13 @@ package com.project.ibooku.presentation.ui.feature.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.naver.maps.geometry.LatLng
 import com.project.ibooku.core.util.Resources
 import com.project.ibooku.domain.model.external.KeywordSearchResultModel
+import com.project.ibooku.domain.usecase.book.GetBookSearchResultListUseCase
 import com.project.ibooku.domain.usecase.external.KeywordSearchResultUseCase
+import com.project.ibooku.domain.usecase.map.GetPedestrianRouteUseCase
+import com.project.ibooku.presentation.ui.dummy.DummyDataList
 import com.project.ibooku.presentation.ui.feature.map.ReviewItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +18,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BookInfoViewModel @Inject constructor(
-    val keywordSearchResultUseCase: KeywordSearchResultUseCase
+    val keywordSearchResultUseCase: KeywordSearchResultUseCase,
+    val getBookInfoSearchUseCase: GetBookSearchResultListUseCase,
+    val getPedestrianRouteUseCase: GetPedestrianRouteUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookInfoState())
@@ -24,7 +30,7 @@ class BookInfoViewModel @Inject constructor(
     fun onEvent(event: BookSearchEvents) {
         when (event) {
             is BookSearchEvents.SearchTextChanged -> {
-                if (event.newText.isEmpty()) {
+                if (event.newText.isBlank()) {
                     // 입력 키워드가 비어있을땐 검색된 결과 목록을 지우고
                     // 최근 검색어 및 인기 키워드 화면 띄우기 위해 해당 코드 작성
                     _state.value = _state.value.copy(
@@ -67,28 +73,31 @@ class BookInfoViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     reviewOrder = event.reviewOrder
                 )
-                _state.value = when(event.reviewOrder){
+                _state.value = when (event.reviewOrder) {
                     ReviewOrder.RECENT -> {
                         _state.value.copy(
                             selectedBookReviewList = _state.value.selectedBookReviewList.sortedByDescending { it.datetime }
                         )
                     }
+
                     ReviewOrder.PAST -> {
                         _state.value.copy(
                             selectedBookReviewList = _state.value.selectedBookReviewList.sortedBy { it.datetime }
                         )
                     }
+
                     ReviewOrder.HIGH_RATING -> {
                         _state.value.copy(
                             selectedBookReviewList = _state.value.selectedBookReviewList.sortedWith(
-                                compareByDescending<ReviewItem>{ it.rating }.thenByDescending { it.datetime }
+                                compareByDescending<ReviewItem> { it.rating }.thenByDescending { it.datetime }
                             )
                         )
                     }
+
                     ReviewOrder.LOW_RATING -> {
                         _state.value.copy(
                             selectedBookReviewList = _state.value.selectedBookReviewList.sortedWith(
-                                compareBy<ReviewItem>{ it.rating }.thenByDescending { it.datetime }
+                                compareBy<ReviewItem> { it.rating }.thenByDescending { it.datetime }
                             )
                         )
                     }
@@ -105,6 +114,26 @@ class BookInfoViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     isSpoilerExcluded = _state.value.isSpoilerExcluded.not()
                 )
+            }
+
+            is BookSearchEvents.OnLocationChanged -> {
+                _state.value = _state.value.copy(
+                    currLocation = LatLng(event.lat, event.lng)
+                )
+            }
+
+            is BookSearchEvents.OnCurrLocationLoaded -> {
+                getLibraryList()
+            }
+
+            is BookSearchEvents.OnLibrarySelected -> {
+                _state.value = _state.value.copy(
+                    selectedLibrary = event.libraryItem
+                )
+            }
+
+            is BookSearchEvents.FetchPedestrianRoute -> {
+                getPedestrianRoute()
             }
         }
     }
@@ -132,9 +161,41 @@ class BookInfoViewModel @Inject constructor(
                     }
                 }
             }
+//            getBookInfoSearchUseCase(keyword).collect { result ->
+//                when (result) {
+//                    is Resources.Loading -> {
+//                        _state.value = _state.value.copy(isLoading = result.isLoading)
+//                    }
+//
+//                    is Resources.Success -> {
+//                        result.data?.let { model ->
+//                            val searchResult = model.map { it ->
+//                                KeywordSearchResultItem(
+//                                    titleInfo = it.name,
+//                                    typeName = "",
+//                                    authorInfo = it.author,
+//                                    publisherInfo = it.publisher,
+//                                    isbn = it.isbn,
+//                                    className = "",
+//                                    imageUrl = ""
+//                                )
+//                            }
+//                            _state.value = _state.value.copy(
+//                                searchResult = KeywordSearchResultModel(
+//                                    searchedKeyword = keyword,
+//                                    resultList = searchResult
+//                                )
+//                            )
+//                        }
+//                    }
+//
+//                    is Resources.Error -> {
+//                        _state.value = _state.value.copy(isLoading = false)
+//                    }
+//                }
+//            }
         }
     }
-
 
     /**
      * 검색창에 입력되는 검색어를 기준으로 연관 검색어들을 가져온다.
@@ -153,6 +214,56 @@ class BookInfoViewModel @Inject constructor(
 
                     else -> {
 
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 10km 반경 내의 도서관 목록을 가져온다
+     */
+    private fun getLibraryList(){
+         viewModelScope.launch {
+             _state.value = _state.value.copy(
+                 nearLibraryList = DummyDataList.libraryList
+             )
+         }
+    }
+
+    /**
+     * start, end 좌표를 기준으로 도보 경로를 가져온다
+     */
+    private fun getPedestrianRoute(){
+        viewModelScope.launch {
+            val currLocation = _state.value.currLocation
+            val libraryLocation = _state.value.selectedLibrary
+            if(currLocation != null && libraryLocation != null){
+                getPedestrianRouteUseCase(
+                    startLat = currLocation.latitude,
+                    startLng = currLocation.longitude,
+                    endLat = libraryLocation.lat,
+                    endLng = libraryLocation.lng,
+                    startName = "출발",
+                    endName = "도착",
+                ).collect { result ->
+                    when (result) {
+                        is Resources.Loading -> {
+                            _state.value = _state.value.copy(isLoading = result.isLoading)
+                        }
+
+                        is Resources.Success -> {
+                            result.data?.let { coordinates ->
+                                val routeList = coordinates.map {
+                                    LatLng(it.lat, it.lng)
+                                }
+                                _state.value = _state.value.copy(pedestrianPathList = routeList)
+                            }
+                        }
+
+                        is Resources.Error -> {
+                            _state.value = _state.value.copy(isLoading = false)
+                        }
                     }
                 }
             }

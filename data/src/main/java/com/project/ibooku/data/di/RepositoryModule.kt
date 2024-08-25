@@ -5,12 +5,15 @@ import com.project.ibooku.data.remote.service.external.CentralService
 import com.project.ibooku.data.remote.service.external.NaruService
 import com.project.ibooku.data.remote.service.general.BookService
 import com.project.ibooku.data.remote.service.general.ReviewService
+import com.project.ibooku.data.remote.service.general.TMapService
 import com.project.ibooku.data.remote.service.general.UserService
 import com.project.ibooku.data.repository.BookRepositoryImpl
+import com.project.ibooku.data.repository.MapRepositoryImpl
 import com.project.ibooku.data.repository.ReviewRepositoryImpl
 import com.project.ibooku.data.repository.UserRepositoryImpl
 import com.project.ibooku.domain.respository.BookRepository
 import com.project.ibooku.domain.respository.LibraryRepository
+import com.project.ibooku.domain.respository.MapRepository
 import com.project.ibooku.domain.respository.ReviewRepository
 import com.project.ibooku.domain.respository.UserRepository
 import dagger.Module
@@ -45,4 +48,9 @@ object RepositoryModule {
     @Singleton
     fun provideBookRepository(bookService: BookService): BookRepository =
         BookRepositoryImpl(bookService = bookService)
+
+    @Provides
+    @Singleton
+    fun provideMapRepository(tMapService: TMapService): MapRepository =
+        MapRepositoryImpl(tMapService = tMapService)
 }

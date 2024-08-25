@@ -2,7 +2,9 @@ package com.project.ibooku.data.repository
 
 import com.project.ibooku.core.util.Resources
 import com.project.ibooku.data.remote.request.user.ReqLogin
+import com.project.ibooku.data.remote.request.user.ReqSendEmail
 import com.project.ibooku.data.remote.request.user.ReqSignUp
+import com.project.ibooku.data.remote.request.user.ReqValidateEmail
 import com.project.ibooku.data.remote.service.general.UserService
 import com.project.ibooku.domain.model.review.ReviewListModel
 import com.project.ibooku.domain.model.user.UserLoginModel
@@ -78,6 +80,57 @@ class UserRepositoryImpl @Inject constructor(
                 if (data == null) {
                     emit(Resources.Loading(false))
                 } else {
+                    emit(Resources.Success(data = data))
+                    emit(Resources.Loading(false))
+                }
+            }.suspendOnError {
+                Timber.tag("server-response").e("$errorBody")
+                emit(Resources.Error("$errorBody"))
+                emit(Resources.Loading(false))
+            }.suspendOnException {
+                Timber.tag("server-response").e("$message")
+                emit(Resources.Error("$message"))
+                emit(Resources.Loading(false))
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    override suspend fun sendEmailAuthCode(email: String): Flow<Resources<Boolean>> {
+        return flow<Resources<Boolean>>{
+            emit(Resources.Loading(true))
+            val req = ReqSendEmail(email = email)
+            val response = userService.postSendEmail(req = req)
+            response.suspendOnSuccess {
+                if(data == null){
+                    emit(Resources.Loading(false))
+                }else{
+                    emit(Resources.Success(data = data))
+                    emit(Resources.Loading(false))
+                }
+            }.suspendOnError {
+                Timber.tag("server-response").e("$errorBody")
+                emit(Resources.Error("$errorBody"))
+                emit(Resources.Loading(false))
+            }.suspendOnException {
+                Timber.tag("server-response").e("$message")
+                emit(Resources.Error("$message"))
+                emit(Resources.Loading(false))
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    override suspend fun validateEmailAuthCode(
+        email: String,
+        code: String
+    ): Flow<Resources<Boolean>> {
+        return flow<Resources<Boolean>>{
+            emit(Resources.Loading(true))
+            val req = ReqValidateEmail(email = email, code = code)
+            val response = userService.postValidateEmail(req = req)
+            response.suspendOnSuccess {
+                if(data == null){
+                    emit(Resources.Loading(false))
+                }else{
                     emit(Resources.Success(data = data))
                     emit(Resources.Loading(false))
                 }

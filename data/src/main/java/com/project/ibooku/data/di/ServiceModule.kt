@@ -1,11 +1,15 @@
 package com.project.ibooku.data.di
 
+import com.google.gson.GsonBuilder
 import com.project.ibooku.data.BuildConfig
 import com.project.ibooku.data.remote.Domain
+import com.project.ibooku.data.remote.response.Geometry
+import com.project.ibooku.data.remote.response.GeometryDeserializer
 import com.project.ibooku.data.remote.service.external.CentralService
 import com.project.ibooku.data.remote.service.external.NaruService
 import com.project.ibooku.data.remote.service.general.BookService
 import com.project.ibooku.data.remote.service.general.ReviewService
+import com.project.ibooku.data.remote.service.general.TMapService
 import com.project.ibooku.data.remote.service.general.UserService
 import com.skydoves.sandwich.retrofit.adapters.ApiResponseCallAdapterFactory
 import dagger.Module
@@ -32,6 +36,10 @@ object ServiceModule {
             .addInterceptor { chain ->
                 val requestBuilder = chain.request().newBuilder()
                     .addHeader("Content-Type", "application/json")
+
+                if(apiKey == BuildConfig.TMAP_CLIENT_API_KEY){
+                    requestBuilder.addHeader("appKey", BuildConfig.TMAP_CLIENT_API_KEY)
+                }
 
                 val httpUrl = chain.request()
                     .url
@@ -63,7 +71,7 @@ object ServiceModule {
     fun provideNaruService(): NaruService {
         val naruRetrofit = Retrofit.Builder()
             .baseUrl(Domain.INFORMATION_NARU)
-            .client(getMatchedHttpClient(BuildConfig.NARU_API_KEY))
+            .client(getMatchedHttpClient(apiKey = BuildConfig.NARU_API_KEY))
             .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -75,7 +83,7 @@ object ServiceModule {
     fun provideCentralService(): CentralService {
         val centralRetrofit = Retrofit.Builder()
             .baseUrl(Domain.CENTRAL)
-            .client(getMatchedHttpClient(BuildConfig.CENTRAL_API_KEY))
+            .client(getMatchedHttpClient(apiKey = BuildConfig.CENTRAL_API_KEY))
             .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -116,5 +124,21 @@ object ServiceModule {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
         return generalRetrofit.create(BookService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTMapService(): TMapService {
+        val generalRetrofit = Retrofit.Builder()
+            .baseUrl(Domain.T_MAP)
+            .client(getMatchedHttpClient(apiKey = BuildConfig.TMAP_CLIENT_API_KEY))
+            .addCallAdapterFactory(ApiResponseCallAdapterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(
+                GsonBuilder()
+                    .registerTypeAdapter(Geometry::class.java, GeometryDeserializer())
+                    .create()
+            ))
+            .build()
+        return generalRetrofit.create(TMapService::class.java)
     }
 }

@@ -26,7 +26,8 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "NAVER_CLIENT_ID", properties.getProperty("NAVER_CLIENT_ID"))
+        buildConfigField("String", "NAVER_CLIENT_API_KEY_ID", properties.getProperty("NAVER_CLIENT_API_KEY_ID"))
+        buildConfigField("String", "NAVER_CLIENT_API_KEY", properties.getProperty("NAVER_CLIENT_API_KEY"))
     }
 
     buildFeatures {
