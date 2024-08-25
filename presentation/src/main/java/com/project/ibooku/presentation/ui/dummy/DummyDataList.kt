@@ -2,6 +2,7 @@ package com.project.ibooku.presentation.ui.dummy
 
 import com.project.ibooku.presentation.common.Datetime
 import com.project.ibooku.presentation.ui.feature.map.ReviewItem
+import com.project.ibooku.presentation.ui.item.LibraryItem
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -110,6 +111,31 @@ object DummyDataList {
             lat = 37.50365559324391,
             lon = 126.93329593741983,
             isSpoiler = true
+        )
+    )
+
+    val libraryList = listOf(
+        LibraryItem(
+            name = "관악중앙도서관",
+            address = "서울특별시 관악구 신림로3길 35",
+            distance = 1.2,
+            time = "평일 07:00 ~ 23:00, 주말 07:00 ~ 22:00(자료실 운영기준)",
+            tel = "02-828-5700",
+            webSite = "https://lib.gwanak.go.kr/galib/menu/10080/contents/40031/contents.do",
+            lat = 37.50365559324391,
+            lng = 126.93329593741983,
+            isBookExist = true
+        ),
+        LibraryItem(
+            name = "구립나래어린이집",
+            address = "서울특별시 동작구 상도로15라길 24",
+            distance = 1.5,
+            time = "평일 07:00 ~ 23:00, 주말 07:00 ~ 22:00(자료실 운영기준)",
+            tel = "02-828-5700",
+            webSite = "https://lib.gwanak.go.kr/galib/menu/10080/contents/40031/contents.do",
+            lat = 37.503451497902404,
+            lng = 126.93386214889784,
+            isBookExist = true
         )
     )
 }

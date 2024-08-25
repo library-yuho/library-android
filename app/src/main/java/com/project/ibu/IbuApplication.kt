@@ -16,6 +16,6 @@ class IbuApplication: Application(){
     override fun onCreate() {
         super.onCreate()
         context = applicationContext
-        NaverMapSdk.getInstance(this).client = NaverMapSdk.NaverCloudPlatformClient(BuildConfig.NAVER_CLIENT_ID)
+        NaverMapSdk.getInstance(this).client = NaverMapSdk.NaverCloudPlatformClient(BuildConfig.NAVER_CLIENT_API_KEY_ID)
     }
 }

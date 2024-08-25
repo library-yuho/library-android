@@ -6,7 +6,9 @@ object Domain {
     /** 국립중앙도서관 도메인 */
     const val CENTRAL = "https://www.nl.go.kr/"
     /** 일반 메인 서버 */
-    const val GENERAL = ""
+    const val GENERAL = "https://ibooku.duckdns.org:8080/"
+    /** T-MAP */
+    const val T_MAP = "https://apis.openapi.sk.com/"
 }
 
 object UrlLink {

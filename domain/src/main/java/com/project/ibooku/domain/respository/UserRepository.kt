@@ -13,4 +13,7 @@ interface UserRepository {
         birth: String,
         nickname: String
     ): Flow<Resources<String>>
+
+    suspend fun sendEmailAuthCode(email: String): Flow<Resources<Boolean>>
+    suspend fun validateEmailAuthCode(email: String, code: String): Flow<Resources<Boolean>>
 }

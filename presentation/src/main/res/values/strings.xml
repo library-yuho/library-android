@@ -61,6 +61,9 @@
     <string name="book_detail_order_high_rating">별점 높은순</string>
     <string name="book_detail_order_low_rating">별점 낮은순</string>
 
+    <string name="book_near_library_distance">현재 위치로부터 #VALUE# 떨어진 곳에 위치</string>
+    <string name="book_near_library_direction_guide">길안내</string>
+
     <string name="date_type_error">잘못된 접근입니다.</string>
     <string name="date_type_now">방금 전</string>
     <string name="date_type_minutes">#VALUE#분 전</string>

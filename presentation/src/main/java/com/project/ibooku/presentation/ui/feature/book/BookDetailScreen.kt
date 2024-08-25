@@ -60,6 +60,7 @@ import androidx.navigation.NavController
 import com.project.ibooku.domain.model.external.KeywordSearchResultItem
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.common.Datetime
+import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.BaseButton
 import com.project.ibooku.presentation.ui.base.BaseHeader
@@ -114,7 +115,7 @@ fun BookDetailScreen(navController: NavController, viewModel: BookInfoViewModel 
                         isSpoilerExcluded = state.value.isSpoilerExcluded,
                         reviewList = state.value.selectedBookReviewList,
                         modifier = Modifier.fillMaxSize(),
-                        onSearchLibrary = {},
+                        onSearchLibrary = { navController.navigate(NavItem.BookNearLibraryMap.route) },
                         onWriteReview = {},
                         onReviewOrderChanged = { reviewOrder ->
                             viewModel.onEvent(BookSearchEvents.ReviewOrderChanged(reviewOrder))
@@ -465,7 +466,8 @@ fun BookDetailReview(
                                     platformStyle = PlatformTextStyle(
                                         includeFontPadding = false
                                     )
-                                ))
+                                )
+                            )
                         }
                     )
                     DropdownMenuItem(
@@ -706,7 +708,9 @@ fun BookDetailReviewItem(reviewItem: ReviewItem, modifier: Modifier = Modifier) 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                modifier = Modifier.fillMaxWidth().animateContentSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateContentSize(),
                 text = reviewItem.review,
                 maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                 onTextLayout = { textLayoutResult ->

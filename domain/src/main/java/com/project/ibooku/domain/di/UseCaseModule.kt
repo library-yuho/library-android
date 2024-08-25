@@ -11,7 +11,9 @@ import com.project.ibooku.domain.usecase.external.PopularBooksUseCase
 import com.project.ibooku.domain.usecase.review.GetReviewListUseCase
 import com.project.ibooku.domain.usecase.review.WriteReviewUseCase
 import com.project.ibooku.domain.usecase.user.LoginUseCase
+import com.project.ibooku.domain.usecase.user.SendEmailAuthCodeUseCase
 import com.project.ibooku.domain.usecase.user.SignUpUseCase
+import com.project.ibooku.domain.usecase.user.ValidateEmailAuthCodeUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,6 +43,16 @@ object UseCaseModule {
     @Singleton
     fun provideSignUpUseCase(userRepository: UserRepository) =
         SignUpUseCase(userRepository)
+
+    @Provides
+    @Singleton
+    fun provideSendEmailAuthCodeUseCase(userRepository: UserRepository) =
+        SendEmailAuthCodeUseCase(userRepository)
+
+    @Provides
+    @Singleton
+    fun provideValidateEmailAuthCodeUseCase(userRepository: UserRepository) =
+        ValidateEmailAuthCodeUseCase(userRepository)
 
     @Provides
     @Singleton

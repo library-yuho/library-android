@@ -25,6 +25,7 @@ android {
 
         buildConfigField("String", "NARU_API_KEY", properties.getProperty("NARU_API_KEY"))
         buildConfigField("String", "CENTRAL_API_KEY", properties.getProperty("CENTRAL_API_KEY"))
+        buildConfigField("String", "TMAP_CLIENT_API_KEY", properties.getProperty("TMAP_CLIENT_API_KEY"))
     }
 
     buildFeatures {

@@ -38,8 +38,10 @@ import androidx.navigation.compose.rememberNavController
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.feature.book.BookDetailScreen
 import com.project.ibooku.presentation.ui.feature.home.HomeScreen
+import com.project.ibooku.presentation.ui.feature.map.BookNearLibraryMapScreen
 import com.project.ibooku.presentation.ui.feature.map.BookReviewLocationMapScreen
 import com.project.ibooku.presentation.ui.feature.map.BookReviewReadMap
+import com.project.ibooku.presentation.ui.feature.map.LibraryPedestrianRouteScreen
 import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewCompleteScreen
 import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewLocationScreen
@@ -180,8 +182,17 @@ private fun NavigationGraph(
             }
             BookDetailScreen(navController = navController, viewModel = hiltViewModel<BookInfoViewModel>(prevEntry))
         }
-        composable(NavItem.BookNearLibraryMap.route) {
-
+        composable(NavItem.BookNearLibraryMap.route) { backStackEntry ->
+            val prevEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(NavItem.BookSearch.route)
+            }
+            BookNearLibraryMapScreen(navController = navController, viewModel = hiltViewModel<BookInfoViewModel>(prevEntry))
+        }
+        composable(NavItem.LibraryPedestrianRouteMap.route) { backStackEntry ->
+            val prevEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(NavItem.BookSearch.route)
+            }
+            LibraryPedestrianRouteScreen(navController = navController, viewModel = hiltViewModel<BookInfoViewModel>(prevEntry))
         }
         composable(NavItem.BookReviewReadMap.route) {
             BookReviewReadMap(navController = navController)
@@ -229,5 +240,6 @@ sealed class NavItem(val route: String) {
     data object BookReviewLocation : NavItem("book_review_location")
     data object BookReviewLocationMap : NavItem("book_review_location_map")
     data object BookReviewComplete : NavItem("book_review_complete")
+    data object LibraryPedestrianRouteMap : NavItem("library_pedestrian_route_map")
 }
 
