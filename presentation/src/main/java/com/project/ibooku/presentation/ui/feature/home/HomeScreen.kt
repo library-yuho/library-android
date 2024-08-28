@@ -2,6 +2,9 @@ package com.project.ibooku.presentation.ui.feature.home
 
 import android.content.Intent
 import android.net.Uri
+import android.os.SystemClock
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,7 +41,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -83,6 +88,21 @@ import com.project.ibooku.presentation.ui.theme.notosanskr
  */
 @Composable
 fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hiltViewModel()) {
+    var backPressedTime by remember { mutableLongStateOf(0L) }
+    val context = LocalContext.current
+    val backPressStr = stringResource(id = R.string.back_press_toast_msg)
+
+    BackHandler {
+        val currentTime = SystemClock.elapsedRealtime()
+        if (currentTime - backPressedTime < 2000) {
+            // 2초 이내에 두 번 뒤로 가기 누름 -> 앱 종료
+            (context as? android.app.Activity)?.finish()
+        } else {
+            // 처음 뒤로 가기 버튼을 누른 경우
+            backPressedTime = currentTime
+            Toast.makeText(context, backPressStr, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     StatusBarColorsTheme(statusBarColor = SkyBlue10)
 

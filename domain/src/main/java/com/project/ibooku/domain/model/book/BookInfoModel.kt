@@ -7,4 +7,6 @@ data class BookInfoModel(
     val publisher: String,
     val content: String?,
     val point: Double,
+    val image: String,
+    val subject: String
 )

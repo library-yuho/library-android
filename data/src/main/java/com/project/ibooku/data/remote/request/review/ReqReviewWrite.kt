@@ -7,7 +7,7 @@ data class ReqReviewWrite(
     @SerializedName("isbn") val isbn: String,
     @SerializedName("content") val content: String,
     @SerializedName("point") val point: Double,
-    @SerializedName("lat") val lat: Double,
-    @SerializedName("lon") val lon: Double,
-    @SerializedName("spoiler") val spoiler: String,
+    @SerializedName("lat") val lat: Double?,
+    @SerializedName("lon") val lon: Double?,
+    @SerializedName("spoiler") val spoiler: Boolean,
 )

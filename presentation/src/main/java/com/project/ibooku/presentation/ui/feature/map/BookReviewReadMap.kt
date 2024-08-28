@@ -8,10 +8,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,6 +49,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
@@ -57,8 +65,11 @@ import com.naver.maps.map.compose.rememberFusedLocationSource
 import com.naver.maps.map.overlay.OverlayImage
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.common.Datetime
+import com.project.ibooku.presentation.items.ReviewItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.StarRatingBar
+import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
+import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.theme.Black
 import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray50
@@ -66,13 +77,13 @@ import com.project.ibooku.presentation.ui.theme.IbookuTheme
 import com.project.ibooku.presentation.ui.theme.SkyBlue10
 import com.project.ibooku.presentation.ui.theme.White
 import com.project.ibooku.presentation.ui.theme.notosanskr
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.ZonedDateTime
 
 @OptIn(ExperimentalNaverMapApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun BookReviewReadMap(navController: NavController) {
+fun BookReviewReadMap(
+    navController: NavController,
+    viewModel: BookReviewViewModel = hiltViewModel()
+) {
     StatusBarColorsTheme()
 
     IbookuTheme {
@@ -96,63 +107,68 @@ fun BookReviewReadMap(navController: NavController) {
                 )
             }
 
-            val dummyReviewList = listOf(
-                ReviewItem(
-                    reviewId = "1",
-                    review = "이거 뭔가좀 이상한거 같으면서도... \n아닌거 같으면서도 그 사이에 있는 애매모호한 경계에 있는 그런 책이네요hrth,rtpohkrtdophkrtpdokhprtdekhpoetkhpoerkjphejmphremprhjmoprejkhpkmrepomhopmhjrpemopherherrejetrj 이거 뭔가좀 이상한거 같으면서도... 아닌거 같으면서도 그 사이에 있는 애매모호한 경계에 있는 그런 책이네요hrth,rtpohkrtdophkrtpdokhprtdekhpoetkhpoerkjphejmphremprhjmoprejkhpkmrepomhopmhjrpemopherherrejetrj이거 뭔가좀 이상한거 같으면서도... \n이거 뭔가좀 이상한거 같으면서도... \n아닌거 같으면서도 그 사이에 있는 애매모호한 경계에 있는 그런 책이네요hrth,rtpohkrtdophkrtpdokhprtdekhpoetkhpoerkjphejmphremprhjmoprejkhpkmrepomhopmhjrpemopherherrejet ",
-                    bookTitle = "죽고 싶지만 떡볶이는 먹고싶어",
-                    bookAuthors = "김은희",
-                    rating = 4.5,
-                    age = 33,
-                    datetime = LocalDateTime.parse("2023-08-21T21:10:59.6475673+09:00", Datetime.serverTimeFormatter).atZone(ZoneId.of("Asia/Seoul")),
-                    nickname = "cdcdefg4",
-                    lat = 37.50365559324391,
-                    lon = 126.93329593741983,
-                    isSpoiler = false
-                )
-            )
+            var isRequestNearReview by rememberSaveable {
+                mutableStateOf(false)
+            }
 
-            Box(modifier = Modifier.padding(innerPadding)) {
+            val state = viewModel.state.collectAsStateWithLifecycle()
+
+            var isSheetOpen by rememberSaveable {
+                mutableStateOf(false)
+            }
+            val sheetState =
+                rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
+            Box(modifier = Modifier
+                .systemBarsPadding()
+                .padding(innerPadding)) {
                 NaverMap(
                     modifier = Modifier.fillMaxSize(),
                     locationSource = rememberFusedLocationSource(),
                     properties = mapProperties,
-                    uiSettings = mapUiSettings
-                ) {
-                    dummyReviewList.forEach {
-                        var isSheetOpen by rememberSaveable {
-                            mutableStateOf(false)
+                    uiSettings = mapUiSettings,
+                    onLocationChange = { location ->
+                        viewModel.onEvent(
+                            BookReviewEvents.OnCurrLocationChanged(
+                                lat = location.latitude,
+                                lng = location.longitude
+                            )
+                        )
+                        if (!isRequestNearReview) {
+                            viewModel.onEvent(BookReviewEvents.RequestNearReviewList)
+                            isRequestNearReview = true
                         }
-                        val sheetState =
-                            rememberModalBottomSheetState(skipPartiallyExpanded = false)
-
+                    }
+                ) {
+                    state.value.nearReviewList.forEach { review ->
                         Marker(
                             state = MarkerState(
                                 position = LatLng(
-                                    it.lat,
-                                    it.lon
+                                    review.lat!!,
+                                    review.lng!!
                                 )
                             ),
-                            captionText = it.bookTitle,
+                            captionText = review.bookTitle,
                             captionRequestedWidth = 200.dp,
                             onClick = {
-                                isSheetOpen = true
+                                viewModel.onEvent(BookReviewEvents.OnReviewSelected(review))
                                 false
                             },
                             icon = OverlayImage.fromResource(R.drawable.ic_marker_review)
                         )
-
-                        if (isSheetOpen) {
-                            ReviewBottomSheet(
-                                screenHeight = LocalConfiguration.current.screenHeightDp.dp,
-                                sheetState = sheetState,
-                                reviewItem = it,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(),
-                                onDismiss = { isSheetOpen = false })
-                        }
                     }
+                }
+                if (state.value.selectedReview != null) {
+                    ReviewBottomSheet(
+                        screenHeight = LocalConfiguration.current.screenHeightDp.dp,
+                        sheetState = sheetState,
+                        reviewItem = state.value.selectedReview!!,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        onDismiss = {
+                            viewModel.onEvent(BookReviewEvents.RefreshSelectedReview)
+                        })
                 }
             }
         }
@@ -174,7 +190,8 @@ fun ReviewBottomSheet(
     var isEllipsized by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
-        modifier = modifier,
+        modifier = modifier
+            .navigationBarsPadding(),
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         dragHandle = null,
@@ -385,6 +402,13 @@ fun ReviewBottomSheet(
                     }
                 }
             }
+
+            // 이거 안해주면 시스템 네비게이션바랑 겹침
+            Spacer(
+                modifier = Modifier.height(
+                    WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                )
+            )
         }
     }
 
@@ -397,18 +421,3 @@ fun ReviewBottomSheet(
         }
     }
 }
-
-
-data class ReviewItem(
-    val reviewId: String,
-    val nickname: String,
-    val datetime: ZonedDateTime,
-    val age: Int,
-    val rating: Double,
-    val bookTitle: String,
-    val bookAuthors: String,
-    val review: String,
-    val lat: Double,
-    val lon: Double,
-    val isSpoiler: Boolean
-)

@@ -4,7 +4,7 @@ import com.project.ibooku.core.util.Resources
 import com.project.ibooku.data.remote.service.general.BookService
 import com.project.ibooku.domain.model.book.BookInfoModel
 import com.project.ibooku.domain.model.book.BookSearchListModel
-import com.project.ibooku.domain.model.external.PopularBooksModel
+import com.project.ibooku.domain.model.book.LibraryInfoModel
 import com.project.ibooku.domain.respository.BookRepository
 import com.skydoves.sandwich.retrofit.errorBody
 import com.skydoves.sandwich.suspendOnError
@@ -33,10 +33,12 @@ class BookRepositoryImpl @Inject constructor(
                             BookSearchListModel(
                                 name = name,
                                 isbn = isbn,
+                                image = image,
+                                subject = subject,
                                 author = author,
                                 publisher = publisher,
                                 content = content,
-                                point = point,
+                                point = point ?: 0.0,
                             )
                         }
                     }
@@ -66,12 +68,57 @@ class BookRepositoryImpl @Inject constructor(
                     val res = with(data) {
                         BookInfoModel(
                             name = name,
-                            isbn = isbn,
+                            isbn = this.isbn,
                             author = author,
                             publisher = publisher,
                             content = content,
-                            point = point,
+                            point = point ?: 0.0,
+                            image = image,
+                            subject = subject,
                         )
+                    }
+                    emit(Resources.Success(data = res))
+                    emit(Resources.Loading(false))
+                }
+            }.suspendOnError {
+                Timber.tag("server-response").e("$errorBody")
+                emit(Resources.Error("$errorBody"))
+                emit(Resources.Loading(false))
+            }.suspendOnException {
+                Timber.tag("server-response").e("$message")
+                emit(Resources.Error("$message"))
+                emit(Resources.Loading(false))
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+
+    override suspend fun getNearLibraryList(
+        isbn: String,
+        lat: Double,
+        lng: Double
+    ): Flow<Resources<List<LibraryInfoModel>>> {
+        return flow<Resources<List<LibraryInfoModel>>> {
+            emit(Resources.Loading(true))
+            val response = bookService.fetchNearLibraryList(isbn = isbn, lat = lat, lng = lng)
+            response.suspendOnSuccess {
+                if (data == null) {
+                    emit(Resources.Loading(false))
+                } else {
+                    val res = data.map {
+                            LibraryInfoModel(
+                                id = it.id,
+                                name = it.name,
+                                libCode = it.libCode,
+                                address = it.address,
+                                content = it.content,
+                                telephone = it.telephone,
+                                website = it.website,
+                                lat = it.lat,
+                                lng = it.lon,
+                                distance = it.distance,
+                                bookExist = it.bookExist,
+                            )
                     }
                     emit(Resources.Success(data = res))
                     emit(Resources.Loading(false))

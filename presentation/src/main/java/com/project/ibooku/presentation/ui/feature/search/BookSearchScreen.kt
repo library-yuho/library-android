@@ -40,6 +40,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -49,6 +50,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -67,11 +69,19 @@ import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieClipSpec
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants.IterateForever
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieAnimatable
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.project.ibooku.domain.model.external.KeywordSearchResultItem
 import com.project.ibooku.domain.model.external.KeywordSearchResultModel
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
+import com.project.ibooku.presentation.ui.base.BaseLoadingIndicator
 import com.project.ibooku.presentation.ui.theme.Black
 import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray50
@@ -113,6 +123,7 @@ fun BookSearchScreen(
                 relatedKeywordList = bookSearchState.value.relatedKeywordList,
                 searchKeyword = bookSearchState.value.searchKeyword,
                 searchResult = bookSearchState.value.searchResult,
+                isSearchLoading = bookSearchState.value.isSearchLoading,
                 onBackPressed = {
                     navController.popBackStack()
                 },
@@ -182,6 +193,7 @@ fun BookSearchCommonScreen(
     searchKeyword: String,
     relatedKeywordList: List<String>,
     searchResult: KeywordSearchResultModel,
+    isSearchLoading: Boolean,
     modifier: Modifier = Modifier,
     onBackPressed: () -> Unit,
     onTextChanged: (String) -> Unit,
@@ -190,39 +202,75 @@ fun BookSearchCommonScreen(
     onRelatedKeywordClick: (String) -> Unit,
     onResultItemClick: (KeywordSearchResultItem) -> Unit
 ) {
-    Column(modifier = modifier) {
-        BookSearchScreenHeader(
-            searchKeyword = searchKeyword,
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            onBackPressed = onBackPressed,
-            onTextChanged = onTextChanged,
-            onSearch = onSearch
+    Box(modifier = modifier) {
+        Column(modifier = modifier) {
+            BookSearchScreenHeader(
+                searchKeyword = searchKeyword,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                onBackPressed = onBackPressed,
+                onTextChanged = onTextChanged,
+                onSearch = onSearch
+            )
+            Box(modifier = Modifier.weight(1f)) {
+                if (searchResult.resultList.isEmpty()) {
+                    BookSearchBodyNoKeyword(
+                        modifier = Modifier.fillMaxSize(),
+                        onChipSelected = onChipSelected
+                    )
+                } else {
+                    BookSearchBodySearchResultList(
+                        modifier = Modifier.fillMaxSize(),
+                        searchedKeyword = searchResult.searchedKeyword,
+                        searchResultList = searchResult.resultList,
+                        onResultItemClick = onResultItemClick
+                    )
+                }
+                if (relatedKeywordList.isNotEmpty()) {
+                    BookSearchBodyRelatedKeywordList(
+                        searchKeywordList = relatedKeywordList,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        onRelatedKeywordClick = onRelatedKeywordClick
+                    )
+                }
+            }
+        }
+    }
+
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.lottie_book_search)
+    )
+    val animationState = animateLottieCompositionAsState(
+        composition = composition,
+        iterations = IterateForever
+    )
+    val lottieAnimatable = rememberLottieAnimatable()
+
+
+    LaunchedEffect(composition) {
+        lottieAnimatable.animate(
+            composition = composition,
         )
-        Box(modifier = Modifier.weight(1f)) {
-            if (searchResult.resultList.isEmpty()) {
-                BookSearchBodyNoKeyword(
-                    modifier = Modifier.fillMaxSize(),
-                    onChipSelected = onChipSelected
-                )
-            } else {
-                BookSearchBodySearchResultList(
-                    modifier = Modifier.fillMaxSize(),
-                    searchedKeyword = searchResult.searchedKeyword,
-                    searchResultList = searchResult.resultList,
-                    onResultItemClick = onResultItemClick
-                )
-            }
-            if (relatedKeywordList.isNotEmpty()) {
-                BookSearchBodyRelatedKeywordList(
-                    searchKeywordList = relatedKeywordList,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight(),
-                    onRelatedKeywordClick = onRelatedKeywordClick
-                )
-            }
+    }
+
+    if(isSearchLoading){
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.4f))
+                .clickable(enabled = false) {  }
+        ) {
+            LottieAnimation(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .align(Alignment.Center),
+                composition = composition,
+                progress = animationState.progress,
+                contentScale = ContentScale.FillWidth
+            )
         }
     }
 }

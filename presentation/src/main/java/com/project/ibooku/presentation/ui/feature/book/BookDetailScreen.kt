@@ -1,7 +1,8 @@
 package com.project.ibooku.presentation.ui.feature.book
 
-import android.annotation.SuppressLint
 import android.text.Html
+import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,8 +21,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -33,15 +36,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -57,15 +65,17 @@ import androidx.core.text.HtmlCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.project.ibooku.domain.model.external.KeywordSearchResultItem
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.project.ibooku.domain.model.book.BookInfoModel
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.common.Datetime
+import com.project.ibooku.presentation.items.ReviewItem
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.BaseButton
 import com.project.ibooku.presentation.ui.base.BaseHeader
 import com.project.ibooku.presentation.ui.base.StarRatingBar
-import com.project.ibooku.presentation.ui.feature.map.ReviewItem
 import com.project.ibooku.presentation.ui.feature.search.BookInfoViewModel
 import com.project.ibooku.presentation.ui.feature.search.BookSearchEvents
 import com.project.ibooku.presentation.ui.feature.search.ReviewOrder
@@ -80,9 +90,6 @@ import com.project.ibooku.presentation.ui.theme.SpoilerOrange
 import com.project.ibooku.presentation.ui.theme.StarYellow
 import com.project.ibooku.presentation.ui.theme.White
 import com.project.ibooku.presentation.ui.theme.notosanskr
-import me.onebone.toolbar.CollapsingToolbarScaffold
-import me.onebone.toolbar.ScrollStrategy
-import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -90,32 +97,44 @@ import java.math.RoundingMode
 fun BookDetailScreen(navController: NavController, viewModel: BookInfoViewModel = hiltViewModel()) {
     val state = viewModel.state.collectAsStateWithLifecycle()
 
+    BackHandler {
+        viewModel.onEvent(BookSearchEvents.RefreshBookDetail)
+        navController.popBackStack()
+    }
+
     StatusBarColorsTheme()
 
     IbookuTheme {
-        Scaffold(
+        Scaffold(modifier = Modifier.background(White),
             topBar = {
                 BaseHeader(
                     modifier = Modifier.fillMaxWidth(),
                     headerTitle = stringResource(id = R.string.book_detail_header_title),
-                    onBackPressed = { navController.popBackStack() }
+                    onBackPressed = {
+                        viewModel.onEvent(BookSearchEvents.RefreshBookDetail)
+                        navController.popBackStack()
+                    }
                 )
             }
         ) { innerPadding ->
             Column(
                 modifier = Modifier
+                    .fillMaxSize()
                     .background(White)
                     .padding(innerPadding)
             ) {
                 if (state.value.selectedBook != null) {
                     BookDetailScreenBody(
+                        modifier = Modifier.fillMaxSize(),
                         selectedBook = state.value.selectedBook!!,
                         reviewOrder = state.value.reviewOrder,
                         isNoContentExcluded = state.value.isNoContentExcluded,
                         isSpoilerExcluded = state.value.isSpoilerExcluded,
                         reviewList = state.value.selectedBookReviewList,
-                        modifier = Modifier.fillMaxSize(),
-                        onSearchLibrary = { navController.navigate(NavItem.BookNearLibraryMap.route) },
+                        onSearchLibrary = {
+                            viewModel.onEvent(BookSearchEvents.FetchNearLibraryList)
+                            navController.navigate(NavItem.BookNearLibraryMap.route)
+                        },
                         onWriteReview = {},
                         onReviewOrderChanged = { reviewOrder ->
                             viewModel.onEvent(BookSearchEvents.ReviewOrderChanged(reviewOrder))
@@ -153,10 +172,9 @@ fun BookDetailScreenPreview() {
     }
 }
 
-@SuppressLint("LogNotTimber")
 @Composable
 fun BookDetailScreenBody(
-    selectedBook: KeywordSearchResultItem,
+    selectedBook: BookInfoModel,
     reviewOrder: ReviewOrder,
     isNoContentExcluded: Boolean,
     isSpoilerExcluded: Boolean,
@@ -168,56 +186,120 @@ fun BookDetailScreenBody(
     onIsNoContentExcludedChanged: () -> Unit,
     onIsSpoilerExcluded: () -> Unit,
 ) {
-    val toolBarState = rememberCollapsingToolbarScaffoldState()
-    var toolbarHeight by remember { mutableStateOf(0.dp) }
+    var filteredReviewList by remember {
+        mutableStateOf(reviewList)
+    }
 
-    CollapsingToolbarScaffold(
-        modifier = modifier.fillMaxWidth(),
-        state = toolBarState,
-        scrollStrategy = ScrollStrategy.ExitUntilCollapsed,
-        toolbar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .pin()
-            )
+    LaunchedEffect(isNoContentExcluded, isSpoilerExcluded, reviewList) {
+        filteredReviewList = when {
+            isNoContentExcluded && isSpoilerExcluded -> {
+                reviewList.filter { it.review.isNotBlank() && !it.isSpoiler }
+            }
 
-            BookDetailToolBar(
-                title = selectedBook.titleInfo,
-                authors = selectedBook.authorInfo,
-                rating = 5f,
-                description = selectedBook.publisherInfo,
+            isNoContentExcluded -> {
+                reviewList.filter { it.review.isNotBlank() }
+            }
+
+            isSpoilerExcluded -> {
+                reviewList.filter { !it.isSpoiler }
+            }
+
+            else -> reviewList
+        }
+    }
+
+    // LazyListState 생성
+    val listState = rememberLazyListState()
+    // ScrollState를 기반으로 스크롤 위치를 추적
+
+    // BookDetailToolBar의 높이를 지정합니다.
+    var toolbarHeightPx by remember {
+        mutableFloatStateOf(0f)
+    }
+
+    // BookDetailToolBar가 화면에 보이는지 여부를 추적
+    val isToolBarVisible by remember {
+        derivedStateOf {
+            // 첫 번째 아이템이 화면에 보이는지 확인
+            listState.layoutInfo.visibleItemsInfo.any { it.index == 0 }
+        }
+    }
+
+
+    Box(modifier = modifier) {
+        LazyColumn(
+            modifier = modifier.onGloballyPositioned {
+                it.positionInParent()
+            },
+            state = listState
+        ) {
+            item {
+                BookDetailToolBar(
+                    image = selectedBook.image,
+                    title = selectedBook.name,
+                    authors = selectedBook.author,
+                    rating = selectedBook.point.toFloat(),
+                    description = selectedBook.content,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onGloballyPositioned {
+                            toolbarHeightPx = it.size.height.toFloat()
+                            Log.d("BookDetailScreenBody", "BookDetailScreenBody: ${toolbarHeightPx}")
+                        },
+                    onSearchLibrary = onSearchLibrary,
+                    onWriteReview = onWriteReview
+                )
+            }
+            item {
+                BookDetailReviewHeader(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    reviewOrder = reviewOrder,
+                    isNoContentExcluded = isNoContentExcluded,
+                    isSpoilerExcluded = isSpoilerExcluded,
+                    onReviewOrderChanged = onReviewOrderChanged,
+                    onIsNoContentExcludedChanged = onIsNoContentExcludedChanged,
+                    onIsSpoilerExcluded = onIsSpoilerExcluded,
+                )
+            }
+
+            items(filteredReviewList) { review ->
+                BookDetailReviewItem(
+                    reviewItem = review,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                )
+            }
+        }
+
+        if(!isToolBarVisible){
+            BookDetailReviewHeader(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .onGloballyPositioned { coordinates ->
-                        toolbarHeight = coordinates.size.height.dp
-                    }
-                    .offset(y = -(toolbarHeight * (1 - toolBarState.toolbarState.progress)) / 2),
-                onSearchLibrary = onSearchLibrary,
-                onWriteReview = onWriteReview
+                    .background(White)
+                    .onGloballyPositioned {
+                        toolbarHeightPx = it.size.height.toFloat()
+                    },
+                reviewOrder = reviewOrder,
+                isNoContentExcluded = isNoContentExcluded,
+                isSpoilerExcluded = isSpoilerExcluded,
+                onReviewOrderChanged = onReviewOrderChanged,
+                onIsNoContentExcludedChanged = onIsNoContentExcludedChanged,
+                onIsSpoilerExcluded = onIsSpoilerExcluded,
             )
         }
-    ) {
-        BookDetailReview(
-            modifier = Modifier.fillMaxWidth(),
-            reviewOrder = reviewOrder,
-            isNoContentExcluded = isNoContentExcluded,
-            isSpoilerExcluded = isSpoilerExcluded,
-            reviewList = reviewList,
-            onReviewOrderChanged = onReviewOrderChanged,
-            onIsNoContentExcludedChanged = onIsNoContentExcludedChanged,
-            onIsSpoilerExcluded = onIsSpoilerExcluded,
-        )
     }
 }
 
 
 @Composable
 fun BookDetailToolBar(
+    image: String,
     title: String,
     authors: String,
     rating: Float,
-    description: String,
+    description: String?,
     modifier: Modifier = Modifier,
     onSearchLibrary: () -> Unit,
     onWriteReview: () -> Unit
@@ -227,6 +309,18 @@ fun BookDetailToolBar(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(modifier = Modifier.height(12.dp))
+
+        AsyncImage(
+            modifier = Modifier
+                .width(200.dp)
+                .wrapContentHeight(),
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(image)
+                .crossfade(true)
+                .build(),
+            placeholder = painterResource(id = R.drawable.img_book_default),
+            contentDescription = null
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -285,20 +379,23 @@ fun BookDetailToolBar(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 32.dp),
-            text = description,
-            color = Gray30,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            fontFamily = notosanskr,
-            textAlign = TextAlign.Center,
-            style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
-        )
+        if (description != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                text = description,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                color = Gray30,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                fontFamily = notosanskr,
+                textAlign = TextAlign.Center,
+                style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+            )
+        }
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -335,38 +432,17 @@ fun BookDetailToolBar(
 }
 
 @Composable
-fun BookDetailReview(
+fun BookDetailReviewHeader(
     reviewOrder: ReviewOrder,
     isNoContentExcluded: Boolean,
     isSpoilerExcluded: Boolean,
-    reviewList: List<ReviewItem>,
     modifier: Modifier = Modifier,
     onReviewOrderChanged: (ReviewOrder) -> Unit,
     onIsNoContentExcludedChanged: () -> Unit,
     onIsSpoilerExcluded: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var filteredReviewList by remember {
-        mutableStateOf(reviewList)
-    }
 
-    LaunchedEffect(isNoContentExcluded, isSpoilerExcluded, reviewList) {
-        filteredReviewList = when {
-            isNoContentExcluded && isSpoilerExcluded -> {
-                reviewList.filter { it.review.isNotBlank() && !it.isSpoiler }
-            }
-
-            isNoContentExcluded -> {
-                reviewList.filter { it.review.isNotBlank() }
-            }
-
-            isSpoilerExcluded -> {
-                reviewList.filter { !it.isSpoiler }
-            }
-
-            else -> reviewList
-        }
-    }
 
     Column(modifier = modifier) {
 
@@ -491,7 +567,6 @@ fun BookDetailReview(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
             }
         }
 
@@ -592,21 +667,6 @@ fun BookDetailReview(
         }
 
         Spacer(modifier = Modifier.height(12.dp))
-
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 24.dp)
-        ) {
-            items(items = filteredReviewList) { item ->
-                BookDetailReviewItem(
-                    reviewItem = item,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-        }
     }
 }
 
@@ -616,6 +676,7 @@ fun BookDetailReviewItem(reviewItem: ReviewItem, modifier: Modifier = Modifier) 
     var isEllipsized by remember { mutableStateOf(false) }
     Column(
         modifier = modifier
+            .padding(bottom = 12.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFFF8F8F8))
             .padding(18.dp)
@@ -746,6 +807,5 @@ fun BookDetailReviewItem(reviewItem: ReviewItem, modifier: Modifier = Modifier) 
                 style = TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
             )
         }
-
     }
 }

@@ -79,7 +79,7 @@ fun BookReviewWriteScreen(
                         viewModel.onEvent(BookReviewEvents.SpoilerChanged(isSpoiler))
                     },
                     onRatingChanged = { rating ->
-                        viewModel.onEvent(BookReviewEvents.ReviewRatingChanged(rating))
+                        viewModel.onEvent(BookReviewEvents.ReviewRatingChanged(rating.toDouble()))
                     }
                 )
 
@@ -104,7 +104,7 @@ fun BookReviewWriteScreen(
 @Composable
 fun BookReviewWriteScreenBody(
     review: String,
-    rating: Float,
+    rating: Double,
     isSpoiler: Boolean?,
     modifier: Modifier = Modifier,
     onReviewTextChanged: (String) -> Unit,
@@ -130,7 +130,7 @@ fun BookReviewWriteScreenBody(
 
         RatingBar(
             modifier = Modifier.padding(horizontal = 22.dp),
-            value = rating,
+            value = rating.toFloat(),
             size = 50.dp,
             painterEmpty = painterResource(id = R.drawable.ic_review_star_empty),
             painterFilled = painterResource(id = R.drawable.ic_review_start_filled),

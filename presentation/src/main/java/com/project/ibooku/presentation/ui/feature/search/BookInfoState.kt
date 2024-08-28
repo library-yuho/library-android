@@ -1,11 +1,11 @@
 package com.project.ibooku.presentation.ui.feature.search
 
 import com.naver.maps.geometry.LatLng
+import com.project.ibooku.domain.model.book.BookInfoModel
 import com.project.ibooku.domain.model.external.KeywordSearchResultItem
 import com.project.ibooku.domain.model.external.KeywordSearchResultModel
 import com.project.ibooku.presentation.R
-import com.project.ibooku.presentation.ui.dummy.DummyDataList
-import com.project.ibooku.presentation.ui.feature.map.ReviewItem
+import com.project.ibooku.presentation.items.ReviewItem
 import com.project.ibooku.presentation.ui.item.LibraryItem
 
 data class BookInfoState(
@@ -18,10 +18,8 @@ data class BookInfoState(
     ),
 
     // 선택된 책
-    var selectedBook: KeywordSearchResultItem? = null,
-
-    // 상세 정보 리뷰
-    var selectedBookReviewList: List<ReviewItem> = DummyDataList.reviewList,
+    val selectedBook: BookInfoModel? = null,
+    var selectedBookReviewList: List<ReviewItem> = listOf(),
     var reviewOrder: ReviewOrder = ReviewOrder.RECENT,
     var isNoContentExcluded: Boolean = false,
     var isSpoilerExcluded: Boolean = false,
@@ -36,6 +34,7 @@ data class BookInfoState(
 
     // 로딩
     val isLoading: Boolean = false,
+    val isSearchLoading: Boolean = false,
 )
 
 enum class ReviewOrder(val textId: Int){

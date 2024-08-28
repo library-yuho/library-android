@@ -17,12 +17,12 @@ class HomeViewModel @Inject constructor(
     private val popularBooksUseCase: PopularBooksUseCase
 ) : ViewModel() {
 
+    private val _homeState = MutableStateFlow(HomeState())
+    val homeState = _homeState.asStateFlow()
+
     init {
         loadPopularBooks()
     }
-
-    private val _homeState = MutableStateFlow(HomeState())
-    val homeState = _homeState.asStateFlow()
 
     fun onEvent(event: HomeEvents) {
         when (event) {

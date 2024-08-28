@@ -1,26 +1,38 @@
 package com.project.ibooku.presentation.ui.feature.search
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.naver.maps.geometry.LatLng
 import com.project.ibooku.core.util.Resources
+import com.project.ibooku.core.util.UserSetting
+import com.project.ibooku.domain.model.external.KeywordSearchResultItem
 import com.project.ibooku.domain.model.external.KeywordSearchResultModel
+import com.project.ibooku.domain.usecase.book.GetBookInfoUseCase
 import com.project.ibooku.domain.usecase.book.GetBookSearchResultListUseCase
+import com.project.ibooku.domain.usecase.book.GetNearLibraryListUseCase
 import com.project.ibooku.domain.usecase.external.KeywordSearchResultUseCase
 import com.project.ibooku.domain.usecase.map.GetPedestrianRouteUseCase
-import com.project.ibooku.presentation.ui.dummy.DummyDataList
-import com.project.ibooku.presentation.ui.feature.map.ReviewItem
+import com.project.ibooku.domain.usecase.review.GetBookReviewListUseCase
+import com.project.ibooku.presentation.common.Datetime
+import com.project.ibooku.presentation.items.ReviewItem
+import com.project.ibooku.presentation.ui.item.LibraryItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
 class BookInfoViewModel @Inject constructor(
     val keywordSearchResultUseCase: KeywordSearchResultUseCase,
-    val getBookInfoSearchUseCase: GetBookSearchResultListUseCase,
-    val getPedestrianRouteUseCase: GetPedestrianRouteUseCase
+    val getBookSearchResultListUseCase: GetBookSearchResultListUseCase,
+    val getNearLibraryListUseCase: GetNearLibraryListUseCase,
+    val getPedestrianRouteUseCase: GetPedestrianRouteUseCase,
+    val getBookInfoUseCase: GetBookInfoUseCase,
+    val getBookReviewListUseCase: GetBookReviewListUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookInfoState())
@@ -64,9 +76,7 @@ class BookInfoViewModel @Inject constructor(
             }
 
             is BookSearchEvents.BookSelected -> {
-                _state.value = _state.value.copy(
-                    selectedBook = event.selectedBook
-                )
+                getBookDetailAndReview(event.selectedBook)
             }
 
             is BookSearchEvents.ReviewOrderChanged -> {
@@ -122,10 +132,6 @@ class BookInfoViewModel @Inject constructor(
                 )
             }
 
-            is BookSearchEvents.OnCurrLocationLoaded -> {
-                getLibraryList()
-            }
-
             is BookSearchEvents.OnLibrarySelected -> {
                 _state.value = _state.value.copy(
                     selectedLibrary = event.libraryItem
@@ -142,6 +148,23 @@ class BookInfoViewModel @Inject constructor(
                     pedestrianPathList = listOf()
                 )
             }
+
+            is BookSearchEvents.RefreshBookDetail -> {
+                _state.value = _state.value.copy(
+                    selectedBook = null,
+                    selectedBookReviewList = listOf()
+                )
+            }
+
+            is BookSearchEvents.FetchNearLibraryList -> {
+                getNearLibraryList()
+            }
+
+            is BookSearchEvents.RefreshNearLibraryList -> {
+                _state.value = _state.value.copy(
+                    nearLibraryList = listOf()
+                )
+            }
         }
     }
 
@@ -151,56 +174,39 @@ class BookInfoViewModel @Inject constructor(
     private fun getKeywordSearchResult() {
         val keyword = _state.value.searchKeyword
         viewModelScope.launch {
-            keywordSearchResultUseCase(keyword).collect { result ->
+            getBookSearchResultListUseCase(keyword).collect { result ->
                 when (result) {
                     is Resources.Loading -> {
-                        _state.value = _state.value.copy(isLoading = result.isLoading)
+                        _state.value = _state.value.copy(isSearchLoading = result.isLoading)
                     }
 
                     is Resources.Success -> {
-                        result.data?.let { searchResult ->
-                            _state.value = _state.value.copy(searchResult = searchResult)
+                        result.data?.let { model ->
+                            val searchResult = model.map {
+                                KeywordSearchResultItem(
+                                    titleInfo = it.name,
+                                    authorInfo = it.author,
+                                    publisherInfo = it.publisher,
+                                    isbn = it.isbn,
+                                    className = it.subject,
+                                    imageUrl = it.image,
+                                    rating = it.point
+                                )
+                            }
+                            _state.value = _state.value.copy(
+                                searchResult = KeywordSearchResultModel(
+                                    searchedKeyword = keyword,
+                                    resultList = searchResult
+                                )
+                            )
                         }
                     }
 
                     is Resources.Error -> {
-                        _state.value = _state.value.copy(isLoading = false)
+                        _state.value = _state.value.copy(isSearchLoading = false)
                     }
                 }
             }
-//            getBookInfoSearchUseCase(keyword).collect { result ->
-//                when (result) {
-//                    is Resources.Loading -> {
-//                        _state.value = _state.value.copy(isLoading = result.isLoading)
-//                    }
-//
-//                    is Resources.Success -> {
-//                        result.data?.let { model ->
-//                            val searchResult = model.map { it ->
-//                                KeywordSearchResultItem(
-//                                    titleInfo = it.name,
-//                                    typeName = "",
-//                                    authorInfo = it.author,
-//                                    publisherInfo = it.publisher,
-//                                    isbn = it.isbn,
-//                                    className = "",
-//                                    imageUrl = ""
-//                                )
-//                            }
-//                            _state.value = _state.value.copy(
-//                                searchResult = KeywordSearchResultModel(
-//                                    searchedKeyword = keyword,
-//                                    resultList = searchResult
-//                                )
-//                            )
-//                        }
-//                    }
-//
-//                    is Resources.Error -> {
-//                        _state.value = _state.value.copy(isLoading = false)
-//                    }
-//                }
-//            }
         }
     }
 
@@ -228,24 +234,13 @@ class BookInfoViewModel @Inject constructor(
     }
 
     /**
-     * 10km 반경 내의 도서관 목록을 가져온다
-     */
-    private fun getLibraryList(){
-         viewModelScope.launch {
-             _state.value = _state.value.copy(
-                 nearLibraryList = DummyDataList.libraryList
-             )
-         }
-    }
-
-    /**
      * start, end 좌표를 기준으로 도보 경로를 가져온다
      */
-    private fun getPedestrianRoute(){
+    private fun getPedestrianRoute() {
         viewModelScope.launch {
             val currLocation = _state.value.currLocation
             val libraryLocation = _state.value.selectedLibrary
-            if(currLocation != null && libraryLocation != null){
+            if (currLocation != null && libraryLocation != null) {
                 getPedestrianRouteUseCase(
                     startLat = currLocation.latitude,
                     startLng = currLocation.longitude,
@@ -265,6 +260,123 @@ class BookInfoViewModel @Inject constructor(
                                     LatLng(it.lat, it.lng)
                                 }
                                 _state.value = _state.value.copy(pedestrianPathList = routeList)
+                            }
+                        }
+
+                        is Resources.Error -> {
+                            _state.value = _state.value.copy(isLoading = false)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 책 상세 정보와 리뷰를 가져온다
+     */
+    private fun getBookDetailAndReview(searchItem: KeywordSearchResultItem) {
+        viewModelScope.launch {
+            getBookInfoUseCase(isbn = searchItem.isbn).collect { result ->
+                when (result) {
+                    is Resources.Loading -> {
+                        _state.value = _state.value.copy(isLoading = result.isLoading)
+                    }
+
+                    is Resources.Success -> {
+                        result.data?.let { model ->
+                            _state.value = _state.value.copy(selectedBook = model)
+                        }
+                    }
+
+                    is Resources.Error -> {
+                        _state.value = _state.value.copy(isLoading = false)
+                    }
+                }
+            }
+
+            getBookReviewListUseCase(
+                isbn = searchItem.isbn,
+                email = UserSetting.email,
+                isSpoilerNone = _state.value.isSpoilerExcluded,
+                sortType = "NEW",
+            ).collect { result ->
+                when (result) {
+                    is Resources.Loading -> {
+                        _state.value = _state.value.copy(isLoading = result.isLoading)
+                    }
+
+                    is Resources.Success -> {
+                        result.data?.let { reviewList ->
+                            val selectedReviewList = reviewList.map {
+                                ReviewItem(
+                                    reviewId = it.id,
+                                    nickname = it.nickname,
+                                    datetime = LocalDateTime.parse(
+                                        it.createdAt,
+                                        Datetime.serverTimeFormatter
+                                    ).atZone(ZoneId.of("Asia/Seoul")),
+                                    age = Datetime.calculateAge(UserSetting.birth),
+                                    rating = it.point,
+                                    bookTitle = it.bookName,
+                                    bookAuthors = it.bookAuthor,
+                                    review = it.content ?: "",
+                                    lat = it.lat,
+                                    lng = it.lng,
+                                    isSpoiler = it.spoiler,
+                                )
+                            }
+                            _state.value =
+                                _state.value.copy(selectedBookReviewList = selectedReviewList)
+                        }
+                    }
+
+                    is Resources.Error -> {
+                        _state.value = _state.value.copy(isLoading = false)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 주변에 있는 도서관 정보들을 불러온다
+     */
+    private fun getNearLibraryList() {
+        viewModelScope.launch {
+            val selectedBook = _state.value.selectedBook
+            val currLocation = _state.value.currLocation
+            if (selectedBook != null && currLocation != null) {
+                getNearLibraryListUseCase(
+                    isbn = _state.value.selectedBook!!.isbn,
+                    lat = _state.value.currLocation!!.latitude,
+                    lng = _state.value.currLocation!!.longitude
+                ).collect { result ->
+                    when (result) {
+                        is Resources.Loading -> {
+                            _state.value = _state.value.copy(isLoading = result.isLoading)
+                        }
+
+                        is Resources.Success -> {
+                            result.data?.let { libraryList ->
+                                val resultList = libraryList.map {
+                                    LibraryItem(
+                                        id = it.id,
+                                        name = it.name,
+                                        libCode = it.libCode,
+                                        address = it.address,
+                                        content = it.content,
+                                        distance = it.distance,
+                                        time = it.content,
+                                        tel = it.telephone,
+                                        webSite = it.website,
+                                        lat = it.lat,
+                                        lng = it.lng,
+                                        isBookExist = it.bookExist,
+                                    )
+                                }
+                                Log.d("getNearLibraryList", "getNearLibraryList: ${resultList} ")
+                                _state.value = _state.value.copy(nearLibraryList = resultList)
                             }
                         }
 

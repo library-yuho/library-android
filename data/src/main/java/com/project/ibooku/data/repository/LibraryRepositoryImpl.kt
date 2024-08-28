@@ -93,12 +93,12 @@ class LibraryRepositoryImpl @Inject constructor(
                                 with(item) {
                                     KeywordSearchResultItem(
                                         titleInfo = titleInfo,
-                                        typeName = typeName,
                                         authorInfo = authorInfo,
                                         publisherInfo = pubInfo,
                                         isbn = isbn,
                                         className = kdcName1s,
-                                        imageUrl = imageUrl
+                                        imageUrl = imageUrl,
+                                        rating = 0.0
                                     )
                                 }
                             } ?: listOf()
