@@ -12,8 +12,10 @@ sealed class BookSearchEvents {
     data object OnIsNoContentExcludedChanged : BookSearchEvents()
     data object OnIsSpoilerExcluded : BookSearchEvents()
     data class OnLocationChanged(val lat: Double, val lng: Double) : BookSearchEvents()
-    data object OnCurrLocationLoaded : BookSearchEvents()
     data class OnLibrarySelected(val libraryItem: LibraryItem?) : BookSearchEvents()
     data object FetchPedestrianRoute : BookSearchEvents()
     data object OnRouteGuideEnded : BookSearchEvents()
+    data object RefreshBookDetail : BookSearchEvents()
+    data object FetchNearLibraryList : BookSearchEvents()
+    data object RefreshNearLibraryList : BookSearchEvents()
 }

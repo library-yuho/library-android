@@ -8,7 +8,7 @@ import com.project.ibooku.domain.usecase.book.GetBookInfoUseCase
 import com.project.ibooku.domain.usecase.book.GetBookSearchResultListUseCase
 import com.project.ibooku.domain.usecase.external.KeywordSearchResultUseCase
 import com.project.ibooku.domain.usecase.external.PopularBooksUseCase
-import com.project.ibooku.domain.usecase.review.GetReviewListUseCase
+import com.project.ibooku.domain.usecase.review.GetBookReviewListUseCase
 import com.project.ibooku.domain.usecase.review.WriteReviewUseCase
 import com.project.ibooku.domain.usecase.user.LoginUseCase
 import com.project.ibooku.domain.usecase.user.SendEmailAuthCodeUseCase
@@ -56,8 +56,8 @@ object UseCaseModule {
 
     @Provides
     @Singleton
-    fun provideGetReviewListUseCase(reviewRepository: ReviewRepository) =
-        GetReviewListUseCase(reviewRepository)
+    fun provideGetBookReviewListUseCase(reviewRepository: ReviewRepository) =
+        GetBookReviewListUseCase(reviewRepository)
 
     @Provides
     @Singleton

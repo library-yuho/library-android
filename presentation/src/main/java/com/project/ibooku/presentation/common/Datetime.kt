@@ -4,7 +4,9 @@ import android.content.Context
 import com.project.ibooku.presentation.R
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Period
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -19,6 +21,8 @@ object Datetime {
         DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.KOREAN)
     val ymdDotFormatter: DateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyy.MM.dd", Locale.KOREAN)
+    val ymdLinkedFormatter: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyyMMdd", Locale.KOREAN)
 
     val ymdBarFormat = SimpleDateFormat("yyyy-MM-dd").apply {
         timeZone = TimeZone.getTimeZone("Asia/Seoul")
@@ -29,6 +33,7 @@ object Datetime {
     val ymdLinkedFormat = SimpleDateFormat("yyyyMMdd").apply{
         timeZone = TimeZone.getTimeZone("Asia/Seoul")
     }
+
     val serverTimeFormatter: DateTimeFormatter = ISO_OFFSET_DATE_TIME
 
     private const val MINUTES_UNIT_TO_SECONDS = 60
@@ -60,5 +65,11 @@ object Datetime {
     fun parseFormat(targetStr: String, targetFormat: DateFormat, resultFormat: DateFormat): String{
         val date = targetFormat.parse(targetStr)
         return date?.let { resultFormat.format(it) } ?: ""
+    }
+
+    fun calculateAge(birth: String): Int {
+        val birthDate = LocalDate.parse(birth, ymdLinkedFormatter)
+        val currentDate = LocalDate.now()
+        return Period.between(birthDate, currentDate).years
     }
 }

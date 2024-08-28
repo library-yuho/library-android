@@ -10,10 +10,10 @@ data class KeywordSearchResultModel(
 
 data class KeywordSearchResultItem(
     val titleInfo: String,
-    val typeName: String,
     val authorInfo: String,
     val publisherInfo: String,
     val isbn: String,
     val className: String,
-    val imageUrl: String
+    val imageUrl: String,
+    val rating: Double
 ): Serializable

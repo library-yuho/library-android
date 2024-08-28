@@ -1,23 +1,34 @@
 package com.project.ibooku.presentation.ui.feature.review
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.naver.maps.geometry.LatLng
 import com.project.ibooku.core.util.Resources
+import com.project.ibooku.core.util.UserSetting
+import com.project.ibooku.domain.model.external.KeywordSearchResultItem
 import com.project.ibooku.domain.model.external.KeywordSearchResultModel
+import com.project.ibooku.domain.usecase.book.GetBookSearchResultListUseCase
 import com.project.ibooku.domain.usecase.external.KeywordSearchResultUseCase
+import com.project.ibooku.domain.usecase.review.GetNearReviewListUseCase
+import com.project.ibooku.domain.usecase.review.WriteReviewUseCase
+import com.project.ibooku.presentation.common.Datetime
+import com.project.ibooku.presentation.items.ReviewItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
 class BookReviewViewModel @Inject constructor(
-    val keywordSearchResultUseCase: KeywordSearchResultUseCase
+    val keywordSearchResultUseCase: KeywordSearchResultUseCase,
+    val writeReviewUseCase: WriteReviewUseCase,
+    val getBookSearchResultListUseCase: GetBookSearchResultListUseCase,
+    val getNearReviewListUseCase: GetNearReviewListUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookReviewState())
@@ -69,7 +80,7 @@ class BookReviewViewModel @Inject constructor(
             is BookReviewEvents.OnBackPressedAtReviewWrite -> {
                 _state.value = _state.value.copy(
                     selectedBook = null,
-                    rating = 5f,
+                    rating = 5.0,
                     review = "",
                     isSpoiler = null
                 )
@@ -93,7 +104,7 @@ class BookReviewViewModel @Inject constructor(
                         lat = event.lat,
                         lng = event.lng
                     )
-                    withContext(Dispatchers.IO){
+                    withContext(Dispatchers.IO) {
                         saveReview()
                     }
                 }
@@ -116,9 +127,29 @@ class BookReviewViewModel @Inject constructor(
                     rating = event.rating
                 )
             }
+
+            is BookReviewEvents.OnCurrLocationChanged -> {
+                _state.value = _state.value.copy(
+                    currLocation = LatLng(event.lat, event.lng)
+                )
+            }
+
+            is BookReviewEvents.RequestNearReviewList -> {
+                fetchNearReviewList()
+            }
+
+            is BookReviewEvents.OnReviewSelected -> {
+                _state.value = _state.value.copy(
+                    selectedReview = event.reviewItem
+                )
+            }
+
+            is BookReviewEvents.RefreshSelectedReview -> {
+                _state.value = _state.value.copy(
+                    selectedReview = null
+                )
+            }
         }
-        Log.d("BookReviewViewModel", "event: ${event}")
-        Log.d("BookReviewViewModel", "state: ${_state.value}")
     }
 
     /**
@@ -127,20 +158,36 @@ class BookReviewViewModel @Inject constructor(
     private fun getKeywordSearchResult() {
         val keyword = _state.value.searchKeyword
         viewModelScope.launch {
-            keywordSearchResultUseCase(keyword).collect { result ->
+            getBookSearchResultListUseCase(keyword).collect { result ->
                 when (result) {
                     is Resources.Loading -> {
-                        _state.value = _state.value.copy(isLoading = result.isLoading)
+                        _state.value = _state.value.copy(isSearchLoading = result.isLoading)
                     }
 
                     is Resources.Success -> {
-                        result.data?.let { searchResult ->
-                            _state.value = _state.value.copy(searchResult = searchResult)
+                        result.data?.let { model ->
+                            val searchResult = model.map {
+                                KeywordSearchResultItem(
+                                    titleInfo = it.name,
+                                    authorInfo = it.author,
+                                    publisherInfo = it.publisher,
+                                    isbn = it.isbn,
+                                    className = it.subject,
+                                    imageUrl = it.image,
+                                    rating = it.point
+                                )
+                            }
+                            _state.value = _state.value.copy(
+                                searchResult = KeywordSearchResultModel(
+                                    searchedKeyword = keyword,
+                                    resultList = searchResult
+                                )
+                            )
                         }
                     }
 
                     is Resources.Error -> {
-                        _state.value = _state.value.copy(isLoading = false)
+                        _state.value = _state.value.copy(isSearchLoading = false)
                     }
                 }
             }
@@ -174,14 +221,89 @@ class BookReviewViewModel @Inject constructor(
     /**
      * 리뷰 정보를 서버에 저장한다
      */
-    private suspend fun saveReview(){
-        _state.value = _state.value.copy(
-            isLoading = true
-        )
-        delay(2000)
-        _state.value = _state.value.copy(
-            isLoading = false,
-            isReviewUploadSuccess = true
-        )
+    private suspend fun saveReview() {
+        viewModelScope.launch {
+            if (_state.value.selectedBook != null) {
+                writeReviewUseCase(
+                    email = UserSetting.email,
+                    isbn = _state.value.selectedBook!!.isbn,
+                    content = _state.value.review,
+                    point = _state.value.rating,
+                    lat = _state.value.lat,
+                    lon = _state.value.lng,
+                    spoiler = _state.value.isSpoiler ?: false,
+                ).collect { result ->
+                    when (result) {
+                        is Resources.Loading -> {
+                            _state.value = _state.value.copy(isLoading = result.isLoading)
+                        }
+
+                        is Resources.Success -> {
+                            result.data?.let { isSuccess ->
+                                _state.value = _state.value.copy(
+                                    isReviewUploadSuccess = isSuccess
+                                )
+                            }
+                        }
+
+                        is Resources.Error -> {
+                            _state.value = _state.value.copy(isLoading = false)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * 주변 리뷰를 불러온다
+     */
+    private fun fetchNearReviewList() {
+        viewModelScope.launch {
+            if (_state.value.currLocation != null) {
+                getNearReviewListUseCase(
+                    email = UserSetting.email,
+                    lat = _state.value.currLocation!!.latitude,
+                    lng = _state.value.currLocation!!.longitude
+                ).collect { result ->
+                    when (result) {
+                        is Resources.Loading -> {
+                            _state.value = _state.value.copy(isLoading = result.isLoading)
+                        }
+
+                        is Resources.Success -> {
+                            result.data.let { modelList ->
+                                _state.value = _state.value.copy(
+                                    nearReviewList = modelList?.filter { it.lat != null && it.lng != null }?.map{
+                                        ReviewItem(
+                                            reviewId = it.id,
+                                            nickname = it.nickname,
+                                            datetime = LocalDateTime.parse(
+                                                it.createdAt,
+                                                Datetime.serverTimeFormatter
+                                            ).atZone(ZoneId.of("Asia/Seoul")),
+                                            age = Datetime.calculateAge(UserSetting.birth),
+                                            rating = it.point,
+                                            bookTitle = it.bookName,
+                                            bookAuthors = it.bookAuthor,
+                                            review = it.content ?: "",
+                                            lat = it.lat,
+                                            lng = it.lng,
+                                            isSpoiler = it.spoiler,
+                                        )
+                                    } ?: listOf()
+                                )
+                            }
+                        }
+
+                        is Resources.Error -> {
+                            _state.value = _state.value.copy(isLoading = false)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
+

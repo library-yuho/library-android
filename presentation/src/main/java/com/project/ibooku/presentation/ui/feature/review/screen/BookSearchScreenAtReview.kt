@@ -49,6 +49,7 @@ fun BookSearchScreenAtReview(
                 relatedKeywordList = bookReviewState.value.relatedKeywordList,
                 searchKeyword = bookReviewState.value.searchKeyword,
                 searchResult = bookReviewState.value.searchResult,
+                isSearchLoading = bookReviewState.value.isSearchLoading,
                 onBackPressed = {
                     navController.popBackStack()
                 },

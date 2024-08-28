@@ -10,15 +10,21 @@ interface ReviewRepository {
         isbn: String,
         content: String,
         point: Double,
-        lat: Double,
-        lon: Double,
-        spoiler: String,
-    ): Flow<Resources<String>>
+        lat: Double?,
+        lon: Double?,
+        spoiler: Boolean,
+    ): Flow<Resources<Boolean>>
 
-    suspend fun getReviewList(
+    suspend fun getBookReviewList(
         isbn: String,
         email: String,
-        isSpoiler: Boolean,
+        isSpoilerNone: Boolean,
         sortType: String
+    ): Flow<Resources<List<ReviewListModel>>>
+
+    suspend fun getNearReviewList(
+        email: String,
+        lat: Double,
+        lng: Double
     ): Flow<Resources<List<ReviewListModel>>>
 }

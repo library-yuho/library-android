@@ -13,9 +13,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -74,6 +78,7 @@ import com.naver.maps.map.compose.rememberFusedLocationSource
 import com.naver.maps.map.overlay.OverlayImage
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
+import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
 import com.project.ibooku.presentation.ui.feature.search.BookInfoViewModel
 import com.project.ibooku.presentation.ui.feature.search.BookSearchEvents
 import com.project.ibooku.presentation.ui.item.LibraryItem
@@ -123,8 +128,6 @@ fun BookNearLibraryMapScreen(
         )
     }
 
-    val coroutineScope = rememberCoroutineScope()
-
     var fusedLocationSource = rememberFusedLocationSource()
 
     var cameraPositionState = rememberCameraPositionState()
@@ -139,15 +142,13 @@ fun BookNearLibraryMapScreen(
     var isPathActivated by rememberSaveable {
         mutableStateOf(false)
     }
-
-    LaunchedEffect(state.value.currLocation) {
-        if (state.value.currLocation != null) {
-            viewModel.onEvent(BookSearchEvents.OnCurrLocationLoaded)
-        }
+    var isRequestNearLibrary by rememberSaveable {
+        mutableStateOf(false)
     }
 
     BackHandler {
         if (!isPathActivated) {
+            viewModel.onEvent(BookSearchEvents.RefreshNearLibraryList)
             navController.popBackStack()
         }
     }
@@ -182,6 +183,11 @@ fun BookNearLibraryMapScreen(
                                     it.longitude
                                 )
                             )
+
+                            if (!isRequestNearLibrary) {
+                                viewModel.onEvent(BookSearchEvents.FetchNearLibraryList)
+                                isRequestNearLibrary = true
+                            }
                         }
                     ) {
                         if (isPathActivated) {
@@ -316,8 +322,8 @@ fun BookNearLibraryMapScreen(
 
                     if (state.value.selectedBook != null) {
                         BookInfoBox(
-                            title = state.value.selectedBook!!.titleInfo,
-                            authors = state.value.selectedBook!!.authorInfo,
+                            title = state.value.selectedBook!!.name,
+                            authors = state.value.selectedBook!!.author,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(15.dp)
@@ -497,6 +503,13 @@ fun LibraryBottomSheet(
                 onTelCall = onTelCall,
                 onShare = onShare,
                 onDirectionGuide = onDirectionGuide
+            )
+
+            // 이거 안해주면 시스템 네비게이션바랑 겹침
+            Spacer(
+                modifier = Modifier.height(
+                    WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                )
             )
         }
     }

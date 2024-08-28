@@ -285,42 +285,51 @@ fun InputPasswordScreenBody(
                         },
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(10.dp))
 
-                Row(
-                    modifier = Modifier.clickable {
-                        viewModel.onEvent(AuthEvents.OnAutoLoginChanged)
-                    },
-                    verticalAlignment = Alignment.CenterVertically
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 30.dp),
                 ) {
-                    Icon(
-                        painter = painterResource(
-                            id = if (state.value.isAuthLogin) {
-                                R.drawable.ic_check_box_fill
+                    Row(modifier = Modifier
+                        .clickable {
+                            viewModel.onEvent(AuthEvents.OnAutoLoginChanged)
+                        }
+                        .align(Alignment.CenterStart)
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                id = if (state.value.isAuthLogin) {
+                                    R.drawable.ic_check_box_fill
+                                } else {
+                                    R.drawable.ic_check_box_empty
+                                }
+                            ),
+                            tint = if (state.value.isAuthLogin) {
+                                SkyBlue10
                             } else {
-                                R.drawable.ic_check_box_empty
-                            }
-                        ),
-                        tint = if (state.value.isAuthLogin) {
-                            SkyBlue10
-                        } else {
-                            Gray50
-                        },
-                        contentDescription = null
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
+                                Gray50
+                            },
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
 
-                    Text(
-                        text = stringResource(id = R.string.login_auto),
-                        color = Gray50,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        style = DefaultStyle
-                    )
+                        Text(
+                            text = stringResource(id = R.string.login_auto),
+                            color = if (state.value.isAuthLogin) {
+                                SkyBlue10
+                            } else {
+                                Gray50
+                            },
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            style = DefaultStyle
+                        )
+                    }
                 }
             }
-
         }
 
         BaseButton(

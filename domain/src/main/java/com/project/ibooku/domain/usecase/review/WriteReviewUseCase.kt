@@ -11,9 +11,9 @@ class WriteReviewUseCase @Inject constructor(
         isbn: String,
         content: String,
         point: Double,
-        lat: Double,
-        lon: Double,
-        spoiler: String,
+        lat: Double?,
+        lon: Double?,
+        spoiler: Boolean,
     ) = reviewRepository.writeReview(
         email = email,
         isbn = isbn,
