@@ -59,14 +59,37 @@ class UserRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
     }
 
+    override suspend fun checkEmailExist(email: String): Flow<Resources<Boolean>> {
+        return flow<Resources<Boolean>> {
+            emit(Resources.Loading(true))
+            val response = userService.fetchEmailCheck(email = email)
+            response.suspendOnSuccess {
+                if (data == null) {
+                    emit(Resources.Loading(false))
+                } else {
+                    emit(Resources.Success(data = data))
+                    emit(Resources.Loading(false))
+                }
+            }.suspendOnError {
+                Timber.tag("server-response").e("$errorBody")
+                emit(Resources.Error("$errorBody"))
+                emit(Resources.Loading(false))
+            }.suspendOnException {
+                Timber.tag("server-response").e("$message")
+                emit(Resources.Error("$message"))
+                emit(Resources.Loading(false))
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
     override suspend fun signUp(
         email: String,
         password: String,
         gender: String,
         birth: String,
         nickname: String
-    ): Flow<Resources<String>> {
-        return flow<Resources<String>> {
+    ): Flow<Resources<Boolean>> {
+        return flow<Resources<Boolean>> {
             emit(Resources.Loading(true))
             val req = ReqSignUp(
                 email = email,
@@ -131,6 +154,29 @@ class UserRepositoryImpl @Inject constructor(
                 if(data == null){
                     emit(Resources.Loading(false))
                 }else{
+                    emit(Resources.Success(data = data))
+                    emit(Resources.Loading(false))
+                }
+            }.suspendOnError {
+                Timber.tag("server-response").e("$errorBody")
+                emit(Resources.Error("$errorBody"))
+                emit(Resources.Loading(false))
+            }.suspendOnException {
+                Timber.tag("server-response").e("$message")
+                emit(Resources.Error("$message"))
+                emit(Resources.Loading(false))
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    override suspend fun checkNicknameExist(nickname: String): Flow<Resources<Boolean>> {
+        return flow<Resources<Boolean>> {
+            emit(Resources.Loading(true))
+            val response = userService.fetchNicknameCheck(nickname = nickname)
+            response.suspendOnSuccess {
+                if (data == null) {
+                    emit(Resources.Loading(false))
+                } else {
                     emit(Resources.Success(data = data))
                     emit(Resources.Loading(false))
                 }

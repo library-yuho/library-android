@@ -129,7 +129,6 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                     )
                 }
 
-                BaseLoadingIndicator(isLoading = homeState.value.isLoading, modifier = Modifier.fillMaxSize())
             }
 
         }
@@ -344,13 +343,15 @@ private fun HomeBody(
             )
             Spacer(modifier = Modifier.height(26.dp))
 
-            HomeBodyPopularBook(
-                popularBookList = popularBookList,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                onPopularBookClick = onPopularBookClick
-            )
+            if(popularBookList.isNotEmpty()){
+                HomeBodyPopularBook(
+                    popularBookList = popularBookList,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    onPopularBookClick = onPopularBookClick
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

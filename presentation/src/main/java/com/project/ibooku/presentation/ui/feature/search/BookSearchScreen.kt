@@ -288,6 +288,11 @@ private fun BookSearchScreenHeader(
                     disabledIndicatorColor = Color.Transparent,
                     cursorColor = SkyBlue10,
                 ),
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    fontFamily = notosanskr,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                ),
                 maxLines = 1,
                 placeholder = {
                     Text(
@@ -551,8 +556,8 @@ fun BookSearchBodySearchResultItem(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .background(Color(0xFFF8F8F8))
-            .padding(horizontal = 20.dp, vertical = 15.dp)
             .clickable { onResultItemClick(result) }
+            .padding(horizontal = 20.dp, vertical = 15.dp)
     ) {
         val htmlTitleText =
             Html.fromHtml(result.titleInfo, HtmlCompat.FROM_HTML_MODE_LEGACY).toString()

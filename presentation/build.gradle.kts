@@ -96,4 +96,10 @@ dependencies {
 
     // ratingbar
     implementation(libs.ratingbar)
+
+    // WorkManager
+    implementation(libs.work.manager)
+
+    // dataStore
+    implementation(libs.androidx.datastore)
 }

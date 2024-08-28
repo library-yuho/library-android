@@ -135,6 +135,13 @@ class BookInfoViewModel @Inject constructor(
             is BookSearchEvents.FetchPedestrianRoute -> {
                 getPedestrianRoute()
             }
+
+            is BookSearchEvents.OnRouteGuideEnded -> {
+                _state.value = _state.value.copy(
+                    selectedLibrary = null,
+                    pedestrianPathList = listOf()
+                )
+            }
         }
     }
 

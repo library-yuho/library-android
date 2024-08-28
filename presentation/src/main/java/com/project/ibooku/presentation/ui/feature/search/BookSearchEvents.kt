@@ -15,4 +15,5 @@ sealed class BookSearchEvents {
     data object OnCurrLocationLoaded : BookSearchEvents()
     data class OnLibrarySelected(val libraryItem: LibraryItem?) : BookSearchEvents()
     data object FetchPedestrianRoute : BookSearchEvents()
+    data object OnRouteGuideEnded : BookSearchEvents()
 }

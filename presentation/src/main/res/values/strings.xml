@@ -4,6 +4,48 @@
     <string name="nav_home">홈</string>
     <string name="nav_menu">메뉴</string>
 
+    <string name="back_press_toast_msg">앱을 종료하시려면 다시 한 번 눌러주세요.</string>
+    <string name="login_email_placeholder">이메일 주소</string>
+    <string name="login_password_placeholder">비밀번호</string>
+    <string name="login_check_email">이메일 확인</string>
+    <string name="login_start">시작하기</string>
+    <string name="login_title">모든 이들을 위한 공간</string>
+    <string name="login_subtitle">독서의 즐거움을 함께 나눠요.</string>
+    <string name="login_fail_title">로그인에 실패하였습니다.</string>
+    <string name="login_fail_desc">이메일과 비밀번호가 일치하지 않습니다.</string>
+    <string name="login_auto">자동 로그인</string>
+
+    <string name="signup_title">환영합니다!\n계정이 없으시네요.</string>
+    <string name="signup_subtitle">지금 바로 가입하여 특별한 순간을 함께 만들어가요.</string>
+    <string name="signup_auth_code_placeholder">인증코드 입력</string>
+    <string name="signup_send_auth_code">인증코드 전송</string>
+    <string name="signup_resend_auth_code">인증코드 재전송</string>
+    <string name="signup_request_authentication_fail_title">인증코드가 일치하지 않습니다.</string>
+    <string name="signup_request_authentication_fail_msg">이메일로 전송된 인증코드를 다시 한번 확인해주시기 바랍니다.</string>
+    <string name="signup_request_authentication_timeout_title">인증코드가 만료되었습니다.</string>
+    <string name="signup_request_authentication_timeout_msg">인증코드를 재발급 받아주시기 바랍니다.</string>
+    <string name="signup_verify_auth">인증하기</string>
+    <string name="signup_password_title">로그인에 사용할\n비밀번호를 입력해주세요.</string>
+    <string name="signup_password_placeholder">비밀번호 입력</string>
+    <string name="signup_password_error_msg_1">비밀번호는 영문,숫자,특수문자 모두를 하나 이상 포함한 8~16자 이어야 합니다.</string>
+    <string name="signup_password_error_msg_2">위에서 입력한 비밀번호와 일치하지 않습니다.</string>
+    <string name="signup_password_check_placeholder">비밀번호 입력 확인</string>
+
+    <string name="signup_info_title">이 곳에서 사용할\n정보를 입력해주세요.</string>
+    <string name="signup_nickname">닉네임</string>
+    <string name="signup_nickname_placeholder">닉네임 입력</string>
+    <string name="signup_nickname_explanation">한글 1글자 이상 또는 영문 2글자 이상, 숫자 혼용 가능</string>
+    <string name="signup_nickname_duplication_check">중복 확인</string>
+    <string name="signup_nickname_regex_err_title">닉네임 조건과 맞지 않습니다.</string>
+    <string name="signup_nickname_duplication_check_done_title">사용 가능한 닉네임입니다.</string>
+    <string name="signup_nickname_duplication_check_exist_title">이미 존재하는 닉네임입니다.</string>
+    <string name="signup_nickname_done">사용 가능</string>
+    <string name="signup_birth">생년월일</string>
+    <string name="signup_gender">성별</string>
+    <string name="signup_doing">회원가입 하기</string>
+    <string name="signup_success_title">회원가입 완료!</string>
+    <string name="signup_success_msg">성공적으로 회원가입 되었습니다.</string>
+
     <string name="home_header_text"># 도서를 위한 모든 것, I Book U</string>
     <string name="home_header_search_place_holder">찾고 있는 도서가 있나요?</string>
     <string name="home_body_review">리뷰를 공유해보세요! 💬</string>
@@ -63,6 +105,7 @@
 
     <string name="book_near_library_distance">현재 위치로부터 #VALUE# 떨어진 곳에 위치</string>
     <string name="book_near_library_direction_guide">길안내</string>
+    <string name="book_near_library_direction_guide_exit">안내 종료</string>
 
     <string name="date_type_error">잘못된 접근입니다.</string>
     <string name="date_type_now">방금 전</string>
@@ -74,6 +117,10 @@
 
     <string name="common_close">닫기</string>
     <string name="common_done">확인</string>
+    <string name="common_cancel">취소</string>
+    <string name="common_next">다음</string>
     <string name="common_see_detail">자세히 보기</string>
     <string name="common_spoiler">스포일러</string>
+    <string name="common_female">여자</string>
+    <string name="common_male">남자</string>
 </resources>

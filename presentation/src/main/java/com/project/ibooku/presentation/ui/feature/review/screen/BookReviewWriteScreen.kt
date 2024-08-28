@@ -182,6 +182,11 @@ fun BookReviewWriteScreenBody(
                     disabledIndicatorColor = Color.Transparent,
                     cursorColor = SkyBlue10,
                 ),
+                textStyle = TextStyle(
+                    fontSize = 16.sp,
+                    fontFamily = notosanskr,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                ),
                 placeholder = {
                     Text(
                         text = stringResource(id = R.string.write_review_content_placeholder),
