@@ -1,6 +1,7 @@
 package com.project.ibooku.presentation.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -41,4 +42,14 @@ val notosanskr = FontFamily(
     Font(R.font.noto_sans_cjk_kr_regular, FontWeight.Normal, FontStyle.Normal),
     Font(R.font.noto_sans_cjk_kr_medium, FontWeight.Medium, FontStyle.Normal),
     Font(R.font.noto_sans_cjk_kr_bold, FontWeight.Bold, FontStyle.Normal)
+)
+
+val DefaultStyle = TextStyle(
+    fontSize = 16.sp,
+    fontWeight = FontWeight.Normal,
+    fontFamily = notosanskr,
+    platformStyle = PlatformTextStyle(
+        includeFontPadding = false
+    ),
+
 )

@@ -2,20 +2,33 @@ package com.project.ibooku.presentation.common
 
 import android.content.Context
 import com.project.ibooku.presentation.R
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME
 import java.util.Locale
+import java.util.TimeZone
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 object Datetime {
     val ymdBarFormatter: DateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyy-MM-dd", Locale.KOREAN)
-    val ymdBarFormatter2: DateTimeFormatter =
+    val ymdDotFormatter: DateTimeFormatter =
         DateTimeFormatter.ofPattern("yyyy.MM.dd", Locale.KOREAN)
+
+    val ymdBarFormat = SimpleDateFormat("yyyy-MM-dd").apply {
+        timeZone = TimeZone.getTimeZone("Asia/Seoul")
+    }
+    val ymdDotFormat = SimpleDateFormat("yyyy.MM.dd").apply {
+        timeZone = TimeZone.getTimeZone("Asia/Seoul")
+    }
+    val ymdLinkedFormat = SimpleDateFormat("yyyyMMdd").apply{
+        timeZone = TimeZone.getTimeZone("Asia/Seoul")
+    }
     val serverTimeFormatter: DateTimeFormatter = ISO_OFFSET_DATE_TIME
 
     private const val MINUTES_UNIT_TO_SECONDS = 60
@@ -40,7 +53,12 @@ object Datetime {
                 "#VALUE#",
                 diffSeconds.toDuration(DurationUnit.SECONDS).inWholeHours.toString()
             )
-            else -> targetDateTime.format(ymdBarFormatter2)
+            else -> targetDateTime.format(ymdDotFormatter)
         }
+    }
+
+    fun parseFormat(targetStr: String, targetFormat: DateFormat, resultFormat: DateFormat): String{
+        val date = targetFormat.parse(targetStr)
+        return date?.let { resultFormat.format(it) } ?: ""
     }
 }

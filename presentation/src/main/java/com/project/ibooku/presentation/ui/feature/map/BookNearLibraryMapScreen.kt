@@ -1,12 +1,9 @@
 package com.project.ibooku.presentation.ui.feature.map
 
-import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.text.Html
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,10 +35,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -60,6 +59,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraPosition
+import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
 import com.naver.maps.map.compose.LocationTrackingMode
 import com.naver.maps.map.compose.MapProperties
@@ -67,11 +68,11 @@ import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.Marker
 import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
+import com.naver.maps.map.compose.PathOverlay
 import com.naver.maps.map.compose.rememberCameraPositionState
 import com.naver.maps.map.compose.rememberFusedLocationSource
 import com.naver.maps.map.overlay.OverlayImage
 import com.project.ibooku.presentation.R
-import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.feature.search.BookInfoViewModel
 import com.project.ibooku.presentation.ui.feature.search.BookSearchEvents
@@ -87,9 +88,11 @@ import com.project.ibooku.presentation.ui.theme.SkyBlue10
 import com.project.ibooku.presentation.ui.theme.SkyBlue20
 import com.project.ibooku.presentation.ui.theme.White
 import com.project.ibooku.presentation.ui.theme.notosanskr
-import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 
 
 @OptIn(ExperimentalNaverMapApi::class, ExperimentalMaterial3Api::class)
@@ -104,7 +107,7 @@ fun BookNearLibraryMapScreen(
         mutableStateOf(
             MapProperties(
                 maxZoom = 25.0,
-                minZoom = 5.0,
+                minZoom = 10.0,
                 locationTrackingMode = LocationTrackingMode.Follow
             )
         )
@@ -123,38 +126,29 @@ fun BookNearLibraryMapScreen(
     val coroutineScope = rememberCoroutineScope()
 
     var fusedLocationSource = rememberFusedLocationSource()
-    fusedLocationSource.activate { location ->
-        if (location != null) {
-            coroutineScope.launch {
-                viewModel.onEvent(
-                    BookSearchEvents.OnLocationChanged(
-                        location.latitude,
-                        location.longitude
-                    )
-                )
-            }
-        }
-    }
 
     var cameraPositionState = rememberCameraPositionState()
 
-    // 위치 권한 요청 contract 설정
-    var hasLocationPermission by remember { mutableStateOf(false) }
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { isGranted ->
-            hasLocationPermission = isGranted
-        }
-    )
-    if (!hasLocationPermission) {
-        LaunchedEffect(Unit) {
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
+    val sheetState =
+        rememberModalBottomSheetState(skipPartiallyExpanded = false)
+
+    var isSheetOpen by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var isPathActivated by rememberSaveable {
+        mutableStateOf(false)
     }
 
     LaunchedEffect(state.value.currLocation) {
         if (state.value.currLocation != null) {
             viewModel.onEvent(BookSearchEvents.OnCurrLocationLoaded)
+        }
+    }
+
+    BackHandler {
+        if (!isPathActivated) {
+            navController.popBackStack()
         }
     }
 
@@ -170,38 +164,121 @@ fun BookNearLibraryMapScreen(
 
                 Box(modifier = Modifier.fillMaxSize()) {
 
-                    val sheetState =
-                        rememberModalBottomSheetState(skipPartiallyExpanded = false)
-
                     NaverMap(
                         modifier = Modifier.fillMaxSize(),
                         cameraPositionState = cameraPositionState,
                         locationSource = fusedLocationSource,
                         properties = mapProperties,
                         uiSettings = mapUiSettings,
-                    ) {
-                        state.value.nearLibraryList.forEach { library ->
-                            Marker(
-                                state = MarkerState(
-                                    position = LatLng(
-                                        library.lat,
-                                        library.lng
-                                    )
-                                ),
-                                captionText = library.name,
-                                captionRequestedWidth = 200.dp,
-                                onClick = {
-                                    viewModel.onEvent(BookSearchEvents.OnLibrarySelected(library))
-                                    false
-                                },
-                                icon = OverlayImage.fromResource(if (library.isBookExist) R.drawable.ic_marker_library_enable else R.drawable.ic_marker_library_disable)
+                        onMapLoaded = {
+                            if (state.value.currLocation != null) {
+                                cameraPositionState.move(CameraUpdate.scrollTo(state.value.currLocation!!))
+                            }
+                        },
+                        onLocationChange = {
+                            viewModel.onEvent(
+                                BookSearchEvents.OnLocationChanged(
+                                    it.latitude,
+                                    it.longitude
+                                )
                             )
+                        }
+                    ) {
+                        if (isPathActivated) {
+                            if (state.value.pedestrianPathList.size > 1) {
+                                LaunchedEffect(state.value.pedestrianPathList) {
+                                    if (state.value.currLocation != null) {
+                                        val cameraPosition = CameraPosition(
+                                            state.value.currLocation!!,
+                                            18.0,
+                                            cameraPositionState.position.tilt,
+                                            calculateBearing(
+                                                state.value.currLocation!!,
+                                                state.value.pedestrianPathList[0]
+                                            )
+                                        )
+                                        cameraPositionState.move(
+                                            CameraUpdate.toCameraPosition(
+                                                cameraPosition
+                                            )
+                                        )
+                                    }
+                                }
 
+                                PathOverlay(
+                                    coords = state.value.pedestrianPathList,
+                                    width = 10.dp,
+                                    outlineWidth = 2.dp,
+                                    color = SkyBlue20,
+                                    outlineColor = White,
+                                    passedColor = Color.Gray,
+                                    passedOutlineColor = Color.White,
+                                    patternImage = OverlayImage.fromResource(R.drawable.path_pattern),
+                                    patternInterval = 20.dp
+                                )
+                            }
+                        } else {
+                            state.value.nearLibraryList.forEach { library ->
+                                Marker(
+                                    state = MarkerState(
+                                        position = LatLng(
+                                            library.lat,
+                                            library.lng
+                                        )
+                                    ),
+                                    captionText = library.name,
+                                    captionRequestedWidth = 200.dp,
+                                    onClick = {
+                                        viewModel.onEvent(BookSearchEvents.OnLibrarySelected(library))
+                                        isSheetOpen = true
+                                        false
+                                    },
+                                    icon = OverlayImage.fromResource(if (library.isBookExist) R.drawable.ic_marker_library_enable else R.drawable.ic_marker_library_disable)
+                                )
+
+                            }
                         }
                     }
 
+                    if (isPathActivated) {
+                        TextButton(
+                            modifier = Modifier
+                                .padding(20.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(SkyBlue10)
+                                .align(Alignment.BottomEnd),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
+                            onClick = {
+                                isPathActivated = false
+                                viewModel.onEvent(BookSearchEvents.OnRouteGuideEnded)
+                                val cameraPosition = CameraPosition(
+                                    state.value.currLocation!!,
+                                    14.0,
+                                    cameraPositionState.position.tilt,
+                                    0.0
+                                )
+                                cameraPositionState.move(
+                                    CameraUpdate.toCameraPosition(
+                                        cameraPosition
+                                    )
+                                )
+                            }) {
+                            Text(
+                                text = stringResource(id = R.string.book_near_library_direction_guide_exit),
+                                color = White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = notosanskr,
+                                style = TextStyle(
+                                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                                )
+                            )
+                        }
+                    }
+
+
                     val context = LocalContext.current
-                    if (state.value.selectedLibrary != null) {
+                    if (isSheetOpen) {
                         LibraryBottomSheet(
                             sheetState = sheetState,
                             libraryItem = state.value.selectedLibrary!!,
@@ -210,6 +287,7 @@ fun BookNearLibraryMapScreen(
                                 .wrapContentHeight(),
                             onDismiss = {
                                 viewModel.onEvent(BookSearchEvents.OnLibrarySelected(null))
+                                isSheetOpen = false
                             },
                             onTelCall = {
                                 val intent = Intent(Intent.ACTION_DIAL).apply {
@@ -222,11 +300,15 @@ fun BookNearLibraryMapScreen(
                             },
                             onDirectionGuide = {
                                 viewModel.onEvent(BookSearchEvents.FetchPedestrianRoute)
-                                navController.navigate(NavItem.LibraryPedestrianRouteMap.route)
+                                isSheetOpen = false
+                                isPathActivated = true
                             },
                             onWebsiteClick = {
                                 val intent =
-                                    Intent(Intent.ACTION_VIEW, Uri.parse(state.value.selectedLibrary!!.webSite))
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(state.value.selectedLibrary!!.webSite)
+                                    )
                                 context.startActivity(intent)
                             }
                         )
@@ -606,4 +688,18 @@ fun LibrarySheetBottomButton(
             )
         }
     }
+}
+
+fun calculateBearing(start: LatLng, end: LatLng): Double {
+    val lat1 = Math.toRadians(start.latitude)
+    val lng1 = Math.toRadians(start.longitude)
+    val lat2 = Math.toRadians(end.latitude)
+    val lng2 = Math.toRadians(end.longitude)
+
+    val dLng = lng2 - lng1
+    val y = sin(dLng) * cos(lat2)
+    val x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLng)
+
+    val bearing = Math.toDegrees(atan2(y, x))
+    return (bearing + 360) % 360
 }

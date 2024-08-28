@@ -1,0 +1,28 @@
+package com.project.ibooku.presentation.ui.feature.auth
+
+sealed class AuthEvents {
+    data class OnEmailChanged(val newEmail: String) : AuthEvents()
+    data class OnPasswordChanged(val newPassword: String) : AuthEvents()
+    data class OnAuthCodeChanged(val newAuthCode: String) : AuthEvents()
+    data class OnSignUpPasswordChanged(val newPassword: String) : AuthEvents()
+    data class OnSignUpPasswordCheckChanged(val newPassword: String) : AuthEvents()
+    data class OnNicknameChanged(val newNickname: String) : AuthEvents()
+    data class OnBirthChanged(val newBirth: String) : AuthEvents()
+    data class OnGenderChanged(val newGender: String) : AuthEvents()
+    data object OnAutoLoginChanged: AuthEvents()
+    data object CheckEmailExists : AuthEvents()
+    data object RefreshEmailExists: AuthEvents()
+    data object RefreshPassword: AuthEvents()
+    data object RequestLogin : AuthEvents()
+    data object RefreshLoginSuccess: AuthEvents()
+    data object RequestAuthCode : AuthEvents()
+    data object RefreshAuthCode : AuthEvents()
+    data object RequestAuthentication : AuthEvents()
+    data object RefreshIsAuthenticated : AuthEvents()
+    data object RefreshSignUpPassword : AuthEvents()
+    data object CheckNicknameExists : AuthEvents()
+    data object RefreshNickname : AuthEvents()
+    data object RefreshSignUpInfo : AuthEvents()
+    data object RequestSignUp : AuthEvents()
+    data object RefreshSignUpTotalInfo : AuthEvents()
+}

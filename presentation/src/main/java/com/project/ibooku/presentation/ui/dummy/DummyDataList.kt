@@ -136,6 +136,17 @@ object DummyDataList {
             lat = 37.503451497902404,
             lng = 126.93386214889784,
             isBookExist = true
-        )
+        ),
+        LibraryItem(
+            name = "학동역",
+            address = "서울특별시 강남구 학동로 지하 180",
+            distance = 1.5,
+            time = "평일 07:00 ~ 23:00, 주말 07:00 ~ 22:00(자료실 운영기준)",
+            tel = "02-828-5700",
+            webSite = "https://lib.gwanak.go.kr/galib/menu/10080/contents/40031/contents.do",
+            lat = 37.51435655160515,
+            lng = 127.03207835880436,
+            isBookExist = true
+        ),
     )
 }

@@ -32,7 +32,6 @@ data class BookInfoState(
     var selectedLibrary: LibraryItem? = null,
 
     // 경로
-    var isPedestrianPathSuccess: Boolean? = null,
     val pedestrianPathList: List<LatLng> = listOf(),
 
     // 로딩
