@@ -70,7 +70,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieClipSpec
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
@@ -81,7 +80,6 @@ import com.project.ibooku.domain.model.external.KeywordSearchResultModel
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
-import com.project.ibooku.presentation.ui.base.BaseLoadingIndicator
 import com.project.ibooku.presentation.ui.theme.Black
 import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray50
@@ -112,7 +110,7 @@ fun BookSearchScreen(
                 if (bookSearchState.value.searchKeyword.isEmpty()) {
                     navController.popBackStack()
                 } else {
-                    viewModel.onEvent(BookSearchEvents.SearchTextChanged(""))
+                    viewModel.onEvent(BookInfoEvents.InfoTextChanged(""))
                 }
             }
             BookSearchCommonScreen(
@@ -132,30 +130,32 @@ fun BookSearchScreen(
                         focusManager.clearFocus()
                         keyboardController?.hide()
                     }
-                    viewModel.onEvent(BookSearchEvents.SearchKeyword)
+                    viewModel.onEvent(BookInfoEvents.InfoKeyword)
                 },
                 onChipSelected = { keyword ->
                     focusManager.clearFocus()
                     keyboardController?.hide()
                     viewModel.onEvent(
-                        BookSearchEvents.SearchWithSelectionSomething(keyword)
+                        BookInfoEvents.InfoWithSelectionSomething(keyword)
                     )
                 },
                 onTextChanged = { keyword ->
-                    viewModel.onEvent(BookSearchEvents.SearchTextChanged(keyword))
+                    viewModel.onEvent(BookInfoEvents.InfoTextChanged(keyword))
                 },
                 onRelatedKeywordClick = { relatedKeyword ->
                     focusManager.clearFocus()
                     keyboardController?.hide()
                     viewModel.onEvent(
-                        BookSearchEvents.SearchWithSelectionSomething(
+                        BookInfoEvents.InfoWithSelectionSomething(
                             relatedKeyword
                         )
                     )
                 },
                 onResultItemClick = { result ->
-                    viewModel.onEvent(BookSearchEvents.BookSelected(result))
-                    navController.navigate(NavItem.BookDetail.route)
+                    if(result.isbn.isNotEmpty()){
+                        val route = NavItem.BookDetail.route.replace("{isbn}", result.isbn)
+                        navController.navigate(route)
+                    }
                 }
             )
         }
@@ -256,12 +256,12 @@ fun BookSearchCommonScreen(
         )
     }
 
-    if(isSearchLoading){
+    if (isSearchLoading) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.4f))
-                .clickable(enabled = false) {  }
+                .clickable(enabled = false) { }
         ) {
             LottieAnimation(
                 modifier = Modifier

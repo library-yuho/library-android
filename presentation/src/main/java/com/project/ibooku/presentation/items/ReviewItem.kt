@@ -4,6 +4,7 @@ import java.time.ZonedDateTime
 
 
 data class ReviewItem(
+    val isbn: String,
     val reviewId: Int,
     val nickname: String,
     val datetime: ZonedDateTime,

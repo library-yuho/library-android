@@ -42,13 +42,11 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -76,9 +74,6 @@ import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.BaseButton
 import com.project.ibooku.presentation.ui.base.BaseHeader
 import com.project.ibooku.presentation.ui.base.StarRatingBar
-import com.project.ibooku.presentation.ui.feature.search.BookInfoViewModel
-import com.project.ibooku.presentation.ui.feature.search.BookSearchEvents
-import com.project.ibooku.presentation.ui.feature.search.ReviewOrder
 import com.project.ibooku.presentation.ui.theme.Black
 import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray50
@@ -92,13 +87,18 @@ import com.project.ibooku.presentation.ui.theme.White
 import com.project.ibooku.presentation.ui.theme.notosanskr
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
-fun BookDetailScreen(navController: NavController, viewModel: BookInfoViewModel = hiltViewModel()) {
+fun BookDetailScreen(
+    navController: NavController,
+    viewModel: BookDetailViewModel = hiltViewModel()
+) {
     val state = viewModel.state.collectAsStateWithLifecycle()
 
     BackHandler {
-        viewModel.onEvent(BookSearchEvents.RefreshBookDetail)
+        viewModel.onEvent(BookDetailEvents.RefreshBookDetail)
         navController.popBackStack()
     }
 
@@ -111,7 +111,7 @@ fun BookDetailScreen(navController: NavController, viewModel: BookInfoViewModel 
                     modifier = Modifier.fillMaxWidth(),
                     headerTitle = stringResource(id = R.string.book_detail_header_title),
                     onBackPressed = {
-                        viewModel.onEvent(BookSearchEvents.RefreshBookDetail)
+                        viewModel.onEvent(BookDetailEvents.RefreshBookDetail)
                         navController.popBackStack()
                     }
                 )
@@ -132,18 +132,37 @@ fun BookDetailScreen(navController: NavController, viewModel: BookInfoViewModel 
                         isSpoilerExcluded = state.value.isSpoilerExcluded,
                         reviewList = state.value.selectedBookReviewList,
                         onSearchLibrary = {
-                            viewModel.onEvent(BookSearchEvents.FetchNearLibraryList)
-                            navController.navigate(NavItem.BookNearLibraryMap.route)
+                            if (state.value.selectedBook != null) {
+                                val route = NavItem.BookNearLibraryMap.route
+                                    .replace(
+                                        "{isbn}", state.value.selectedBook!!.isbn
+                                    )
+                                    .replace(
+                                        "{title}", state.value.selectedBook!!.name
+                                    ).replace(
+                                        "{author}", state.value.selectedBook!!.author
+                                    )
+                                navController.navigate(route)
+                            }
                         },
-                        onWriteReview = {},
+                        onWriteReview = {
+                            if (state.value.selectedBook != null) {
+                                val route = NavItem.BookReviewWrite.route.replace(
+                                    "{isbn}",
+                                    state.value.selectedBook!!.isbn
+                                )
+                                navController.navigate(route)
+
+                            }
+                        },
                         onReviewOrderChanged = { reviewOrder ->
-                            viewModel.onEvent(BookSearchEvents.ReviewOrderChanged(reviewOrder))
+                            viewModel.onEvent(BookDetailEvents.ReviewOrderChanged(reviewOrder))
                         },
                         onIsNoContentExcludedChanged = {
-                            viewModel.onEvent(BookSearchEvents.OnIsNoContentExcludedChanged)
+                            viewModel.onEvent(BookDetailEvents.OnIsNoContentExcludedChanged)
                         },
                         onIsSpoilerExcluded = {
-                            viewModel.onEvent(BookSearchEvents.OnIsSpoilerExcluded)
+                            viewModel.onEvent(BookDetailEvents.OnIsSpoilerExcluded)
                         }
                     )
                 }
@@ -244,7 +263,6 @@ fun BookDetailScreenBody(
                         .fillMaxWidth()
                         .onGloballyPositioned {
                             toolbarHeightPx = it.size.height.toFloat()
-                            Log.d("BookDetailScreenBody", "BookDetailScreenBody: ${toolbarHeightPx}")
                         },
                     onSearchLibrary = onSearchLibrary,
                     onWriteReview = onWriteReview
@@ -273,7 +291,7 @@ fun BookDetailScreenBody(
             }
         }
 
-        if(!isToolBarVisible){
+        if (!isToolBarVisible) {
             BookDetailReviewHeader(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -73,13 +73,13 @@ class BookReviewViewModel @Inject constructor(
 
             is BookReviewEvents.SearchResultItemsSelected -> {
                 _state.value = _state.value.copy(
-                    selectedBook = event.resultItem
+                    isbn = event.isbn
                 )
             }
 
             is BookReviewEvents.OnBackPressedAtReviewWrite -> {
                 _state.value = _state.value.copy(
-                    selectedBook = null,
+                    isbn = null,
                     rating = 5.0,
                     review = "",
                     isSpoiler = null
@@ -223,10 +223,10 @@ class BookReviewViewModel @Inject constructor(
      */
     private suspend fun saveReview() {
         viewModelScope.launch {
-            if (_state.value.selectedBook != null) {
+            if (_state.value.isbn != null) {
                 writeReviewUseCase(
                     email = UserSetting.email,
-                    isbn = _state.value.selectedBook!!.isbn,
+                    isbn = _state.value.isbn!!,
                     content = _state.value.review,
                     point = _state.value.rating,
                     lat = _state.value.lat,
@@ -277,6 +277,7 @@ class BookReviewViewModel @Inject constructor(
                                 _state.value = _state.value.copy(
                                     nearReviewList = modelList?.filter { it.lat != null && it.lng != null }?.map{
                                         ReviewItem(
+                                            isbn = it.isbn,
                                             reviewId = it.id,
                                             nickname = it.nickname,
                                             datetime = LocalDateTime.parse(

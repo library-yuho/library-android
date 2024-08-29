@@ -29,19 +29,15 @@ import javax.inject.Inject
 class BookInfoViewModel @Inject constructor(
     val keywordSearchResultUseCase: KeywordSearchResultUseCase,
     val getBookSearchResultListUseCase: GetBookSearchResultListUseCase,
-    val getNearLibraryListUseCase: GetNearLibraryListUseCase,
-    val getPedestrianRouteUseCase: GetPedestrianRouteUseCase,
-    val getBookInfoUseCase: GetBookInfoUseCase,
-    val getBookReviewListUseCase: GetBookReviewListUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BookInfoState())
     val state = _state.asStateFlow()
 
     // 이벤트 처리를 위한 함수
-    fun onEvent(event: BookSearchEvents) {
+    fun onEvent(event: BookInfoEvents) {
         when (event) {
-            is BookSearchEvents.SearchTextChanged -> {
+            is BookInfoEvents.InfoTextChanged -> {
                 if (event.newText.isBlank()) {
                     // 입력 키워드가 비어있을땐 검색된 결과 목록을 지우고
                     // 최근 검색어 및 인기 키워드 화면 띄우기 위해 해당 코드 작성
@@ -59,7 +55,7 @@ class BookInfoViewModel @Inject constructor(
                 }
             }
 
-            is BookSearchEvents.SearchKeyword -> {
+            is BookInfoEvents.InfoKeyword -> {
                 // 입력 키워드가 비어있지 않을 경우만 검색
                 if (_state.value.searchKeyword.isNotEmpty()) {
                     _state.value = _state.value.copy(relatedKeywordList = listOf())
@@ -67,7 +63,7 @@ class BookInfoViewModel @Inject constructor(
                 }
             }
 
-            is BookSearchEvents.SearchWithSelectionSomething -> {
+            is BookInfoEvents.InfoWithSelectionSomething -> {
                 _state.value = _state.value.copy(
                     searchKeyword = event.keyword,
                     relatedKeywordList = listOf()
@@ -75,96 +71,7 @@ class BookInfoViewModel @Inject constructor(
                 getKeywordSearchResult()
             }
 
-            is BookSearchEvents.BookSelected -> {
-                getBookDetailAndReview(event.selectedBook)
-            }
 
-            is BookSearchEvents.ReviewOrderChanged -> {
-                _state.value = _state.value.copy(
-                    reviewOrder = event.reviewOrder
-                )
-                _state.value = when (event.reviewOrder) {
-                    ReviewOrder.RECENT -> {
-                        _state.value.copy(
-                            selectedBookReviewList = _state.value.selectedBookReviewList.sortedByDescending { it.datetime }
-                        )
-                    }
-
-                    ReviewOrder.PAST -> {
-                        _state.value.copy(
-                            selectedBookReviewList = _state.value.selectedBookReviewList.sortedBy { it.datetime }
-                        )
-                    }
-
-                    ReviewOrder.HIGH_RATING -> {
-                        _state.value.copy(
-                            selectedBookReviewList = _state.value.selectedBookReviewList.sortedWith(
-                                compareByDescending<ReviewItem> { it.rating }.thenByDescending { it.datetime }
-                            )
-                        )
-                    }
-
-                    ReviewOrder.LOW_RATING -> {
-                        _state.value.copy(
-                            selectedBookReviewList = _state.value.selectedBookReviewList.sortedWith(
-                                compareBy<ReviewItem> { it.rating }.thenByDescending { it.datetime }
-                            )
-                        )
-                    }
-                }
-            }
-
-            is BookSearchEvents.OnIsNoContentExcludedChanged -> {
-                _state.value = _state.value.copy(
-                    isNoContentExcluded = _state.value.isNoContentExcluded.not(),
-                )
-            }
-
-            is BookSearchEvents.OnIsSpoilerExcluded -> {
-                _state.value = _state.value.copy(
-                    isSpoilerExcluded = _state.value.isSpoilerExcluded.not()
-                )
-            }
-
-            is BookSearchEvents.OnLocationChanged -> {
-                _state.value = _state.value.copy(
-                    currLocation = LatLng(event.lat, event.lng)
-                )
-            }
-
-            is BookSearchEvents.OnLibrarySelected -> {
-                _state.value = _state.value.copy(
-                    selectedLibrary = event.libraryItem
-                )
-            }
-
-            is BookSearchEvents.FetchPedestrianRoute -> {
-                getPedestrianRoute()
-            }
-
-            is BookSearchEvents.OnRouteGuideEnded -> {
-                _state.value = _state.value.copy(
-                    selectedLibrary = null,
-                    pedestrianPathList = listOf()
-                )
-            }
-
-            is BookSearchEvents.RefreshBookDetail -> {
-                _state.value = _state.value.copy(
-                    selectedBook = null,
-                    selectedBookReviewList = listOf()
-                )
-            }
-
-            is BookSearchEvents.FetchNearLibraryList -> {
-                getNearLibraryList()
-            }
-
-            is BookSearchEvents.RefreshNearLibraryList -> {
-                _state.value = _state.value.copy(
-                    nearLibraryList = listOf()
-                )
-            }
         }
     }
 
@@ -233,159 +140,5 @@ class BookInfoViewModel @Inject constructor(
         }
     }
 
-    /**
-     * start, end 좌표를 기준으로 도보 경로를 가져온다
-     */
-    private fun getPedestrianRoute() {
-        viewModelScope.launch {
-            val currLocation = _state.value.currLocation
-            val libraryLocation = _state.value.selectedLibrary
-            if (currLocation != null && libraryLocation != null) {
-                getPedestrianRouteUseCase(
-                    startLat = currLocation.latitude,
-                    startLng = currLocation.longitude,
-                    endLat = libraryLocation.lat,
-                    endLng = libraryLocation.lng,
-                    startName = "출발",
-                    endName = "도착",
-                ).collect { result ->
-                    when (result) {
-                        is Resources.Loading -> {
-                            _state.value = _state.value.copy(isLoading = result.isLoading)
-                        }
 
-                        is Resources.Success -> {
-                            result.data?.let { coordinates ->
-                                val routeList = coordinates.map {
-                                    LatLng(it.lat, it.lng)
-                                }
-                                _state.value = _state.value.copy(pedestrianPathList = routeList)
-                            }
-                        }
-
-                        is Resources.Error -> {
-                            _state.value = _state.value.copy(isLoading = false)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * 책 상세 정보와 리뷰를 가져온다
-     */
-    private fun getBookDetailAndReview(searchItem: KeywordSearchResultItem) {
-        viewModelScope.launch {
-            getBookInfoUseCase(isbn = searchItem.isbn).collect { result ->
-                when (result) {
-                    is Resources.Loading -> {
-                        _state.value = _state.value.copy(isLoading = result.isLoading)
-                    }
-
-                    is Resources.Success -> {
-                        result.data?.let { model ->
-                            _state.value = _state.value.copy(selectedBook = model)
-                        }
-                    }
-
-                    is Resources.Error -> {
-                        _state.value = _state.value.copy(isLoading = false)
-                    }
-                }
-            }
-
-            getBookReviewListUseCase(
-                isbn = searchItem.isbn,
-                email = UserSetting.email,
-                isSpoilerNone = _state.value.isSpoilerExcluded,
-                sortType = "NEW",
-            ).collect { result ->
-                when (result) {
-                    is Resources.Loading -> {
-                        _state.value = _state.value.copy(isLoading = result.isLoading)
-                    }
-
-                    is Resources.Success -> {
-                        result.data?.let { reviewList ->
-                            val selectedReviewList = reviewList.map {
-                                ReviewItem(
-                                    reviewId = it.id,
-                                    nickname = it.nickname,
-                                    datetime = LocalDateTime.parse(
-                                        it.createdAt,
-                                        Datetime.serverTimeFormatter
-                                    ).atZone(ZoneId.of("Asia/Seoul")),
-                                    age = Datetime.calculateAge(UserSetting.birth),
-                                    rating = it.point,
-                                    bookTitle = it.bookName,
-                                    bookAuthors = it.bookAuthor,
-                                    review = it.content ?: "",
-                                    lat = it.lat,
-                                    lng = it.lng,
-                                    isSpoiler = it.spoiler,
-                                )
-                            }
-                            _state.value =
-                                _state.value.copy(selectedBookReviewList = selectedReviewList)
-                        }
-                    }
-
-                    is Resources.Error -> {
-                        _state.value = _state.value.copy(isLoading = false)
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * 주변에 있는 도서관 정보들을 불러온다
-     */
-    private fun getNearLibraryList() {
-        viewModelScope.launch {
-            val selectedBook = _state.value.selectedBook
-            val currLocation = _state.value.currLocation
-            if (selectedBook != null && currLocation != null) {
-                getNearLibraryListUseCase(
-                    isbn = _state.value.selectedBook!!.isbn,
-                    lat = _state.value.currLocation!!.latitude,
-                    lng = _state.value.currLocation!!.longitude
-                ).collect { result ->
-                    when (result) {
-                        is Resources.Loading -> {
-                            _state.value = _state.value.copy(isLoading = result.isLoading)
-                        }
-
-                        is Resources.Success -> {
-                            result.data?.let { libraryList ->
-                                val resultList = libraryList.map {
-                                    LibraryItem(
-                                        id = it.id,
-                                        name = it.name,
-                                        libCode = it.libCode,
-                                        address = it.address,
-                                        content = it.content,
-                                        distance = it.distance,
-                                        time = it.content,
-                                        tel = it.telephone,
-                                        webSite = it.website,
-                                        lat = it.lat,
-                                        lng = it.lng,
-                                        isBookExist = it.bookExist,
-                                    )
-                                }
-                                Log.d("getNearLibraryList", "getNearLibraryList: ${resultList} ")
-                                _state.value = _state.value.copy(nearLibraryList = resultList)
-                            }
-                        }
-
-                        is Resources.Error -> {
-                            _state.value = _state.value.copy(isLoading = false)
-                        }
-                    }
-                }
-            }
-        }
-    }
 }

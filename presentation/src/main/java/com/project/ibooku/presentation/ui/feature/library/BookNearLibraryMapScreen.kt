@@ -1,4 +1,4 @@
-package com.project.ibooku.presentation.ui.feature.map
+package com.project.ibooku.presentation.ui.feature.library
 
 import android.content.Intent
 import android.net.Uri
@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -38,7 +37,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -78,9 +76,6 @@ import com.naver.maps.map.compose.rememberFusedLocationSource
 import com.naver.maps.map.overlay.OverlayImage
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
-import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
-import com.project.ibooku.presentation.ui.feature.search.BookInfoViewModel
-import com.project.ibooku.presentation.ui.feature.search.BookSearchEvents
 import com.project.ibooku.presentation.ui.item.LibraryItem
 import com.project.ibooku.presentation.ui.theme.Gray20
 import com.project.ibooku.presentation.ui.theme.Gray30
@@ -104,7 +99,7 @@ import kotlin.math.sin
 @Composable
 fun BookNearLibraryMapScreen(
     navController: NavHostController,
-    viewModel: BookInfoViewModel = hiltViewModel()
+    viewModel: LibraryViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.collectAsStateWithLifecycle()
 
@@ -148,7 +143,7 @@ fun BookNearLibraryMapScreen(
 
     BackHandler {
         if (!isPathActivated) {
-            viewModel.onEvent(BookSearchEvents.RefreshNearLibraryList)
+            viewModel.onEvent(LibraryEvents.RefreshNearLibraryList)
             navController.popBackStack()
         }
     }
@@ -178,14 +173,14 @@ fun BookNearLibraryMapScreen(
                         },
                         onLocationChange = {
                             viewModel.onEvent(
-                                BookSearchEvents.OnLocationChanged(
+                                LibraryEvents.OnLocationChanged(
                                     it.latitude,
                                     it.longitude
                                 )
                             )
 
                             if (!isRequestNearLibrary) {
-                                viewModel.onEvent(BookSearchEvents.FetchNearLibraryList)
+                                viewModel.onEvent(LibraryEvents.FetchNearLibraryList)
                                 isRequestNearLibrary = true
                             }
                         }
@@ -235,7 +230,7 @@ fun BookNearLibraryMapScreen(
                                     captionText = library.name,
                                     captionRequestedWidth = 200.dp,
                                     onClick = {
-                                        viewModel.onEvent(BookSearchEvents.OnLibrarySelected(library))
+                                        viewModel.onEvent(LibraryEvents.OnLibrarySelected(library))
                                         isSheetOpen = true
                                         false
                                     },
@@ -256,7 +251,7 @@ fun BookNearLibraryMapScreen(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
                             onClick = {
                                 isPathActivated = false
-                                viewModel.onEvent(BookSearchEvents.OnRouteGuideEnded)
+                                viewModel.onEvent(LibraryEvents.RefreshPedestrianRoute)
                                 val cameraPosition = CameraPosition(
                                     state.value.currLocation!!,
                                     14.0,
@@ -292,7 +287,7 @@ fun BookNearLibraryMapScreen(
                                 .fillMaxWidth()
                                 .wrapContentHeight(),
                             onDismiss = {
-                                viewModel.onEvent(BookSearchEvents.OnLibrarySelected(null))
+                                viewModel.onEvent(LibraryEvents.OnLibrarySelected(null))
                                 isSheetOpen = false
                             },
                             onTelCall = {
@@ -305,7 +300,7 @@ fun BookNearLibraryMapScreen(
 
                             },
                             onDirectionGuide = {
-                                viewModel.onEvent(BookSearchEvents.FetchPedestrianRoute)
+                                viewModel.onEvent(LibraryEvents.FetchPedestrianRoute)
                                 isSheetOpen = false
                                 isPathActivated = true
                             },
@@ -320,10 +315,10 @@ fun BookNearLibraryMapScreen(
                         )
                     }
 
-                    if (state.value.selectedBook != null) {
+                    if (state.value.bookIsbn != null) {
                         BookInfoBox(
-                            title = state.value.selectedBook!!.name,
-                            authors = state.value.selectedBook!!.author,
+                            title = state.value.bookTitle,
+                            authors = state.value.bookAuthor,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(15.dp)
