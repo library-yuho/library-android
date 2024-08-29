@@ -1,7 +1,9 @@
 package com.project.ibooku.presentation.ui
 
 import android.app.Activity
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -31,10 +33,13 @@ import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.project.ibooku.domain.model.book.BookInfoModel
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.feature.auth.AuthViewModel
 import com.project.ibooku.presentation.ui.feature.auth.screen.login.InputEmailScreen
@@ -42,11 +47,16 @@ import com.project.ibooku.presentation.ui.feature.auth.screen.login.InputPasswor
 import com.project.ibooku.presentation.ui.feature.auth.screen.signup.SignUpAuthScreen
 import com.project.ibooku.presentation.ui.feature.auth.screen.signup.SignUpInputInfoScreen
 import com.project.ibooku.presentation.ui.feature.auth.screen.signup.SignUpInputPasswordScreen
+import com.project.ibooku.presentation.ui.feature.book.BookDetailEvents
 import com.project.ibooku.presentation.ui.feature.book.BookDetailScreen
+import com.project.ibooku.presentation.ui.feature.book.BookDetailViewModel
 import com.project.ibooku.presentation.ui.feature.home.HomeScreen
-import com.project.ibooku.presentation.ui.feature.map.BookNearLibraryMapScreen
-import com.project.ibooku.presentation.ui.feature.map.BookReviewLocationMapScreen
-import com.project.ibooku.presentation.ui.feature.map.BookReviewReadMap
+import com.project.ibooku.presentation.ui.feature.library.BookNearLibraryMapScreen
+import com.project.ibooku.presentation.ui.feature.library.LibraryEvents
+import com.project.ibooku.presentation.ui.feature.library.LibraryViewModel
+import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
+import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewLocationMapScreen
+import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewReadMap
 import com.project.ibooku.presentation.ui.feature.review.BookReviewViewModel
 import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewCompleteScreen
 import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewLocationScreen
@@ -54,6 +64,7 @@ import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewOnboar
 import com.project.ibooku.presentation.ui.feature.review.screen.BookReviewWriteScreen
 import com.project.ibooku.presentation.ui.feature.review.screen.BookSearchScreenAtReview
 import com.project.ibooku.presentation.ui.feature.search.BookInfoViewModel
+import com.project.ibooku.presentation.ui.feature.search.BookInfoEvents
 import com.project.ibooku.presentation.ui.feature.search.BookSearchScreen
 import com.project.ibooku.presentation.ui.feature.splash.SplashScreen
 import com.project.ibooku.presentation.ui.feature.splash.SplashViewModel
@@ -166,42 +177,60 @@ private fun NavigationGraph(
         modifier = modifier
     ) {
         composable(NavItem.Splash.route) {
-            SplashScreen(navController = navController, viewModel = hiltViewModel<SplashViewModel>())
+            SplashScreen(
+                navController = navController,
+                viewModel = hiltViewModel<SplashViewModel>()
+            )
         }
 
         composable(NavItem.InputEmail.route) { backStackEntry ->
-            val prevEntry = remember(backStackEntry){
+            val prevEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(NavItem.InputEmail.route)
             }
-            InputEmailScreen(navController = navController, viewModel = hiltViewModel<AuthViewModel>(prevEntry))
+            InputEmailScreen(
+                navController = navController,
+                viewModel = hiltViewModel<AuthViewModel>(prevEntry)
+            )
         }
 
         composable(NavItem.InputPassword.route) { backStackEntry ->
-            val prevEntry = remember(backStackEntry){
+            val prevEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(NavItem.InputEmail.route)
             }
-            InputPasswordScreen(navController = navController, viewModel = hiltViewModel<AuthViewModel>(prevEntry))
+            InputPasswordScreen(
+                navController = navController,
+                viewModel = hiltViewModel<AuthViewModel>(prevEntry)
+            )
         }
 
         composable(NavItem.SignUpAuth.route) { backStackEntry ->
-            val prevEntry = remember(backStackEntry){
+            val prevEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(NavItem.InputEmail.route)
             }
-            SignUpAuthScreen(navController = navController, viewModel = hiltViewModel<AuthViewModel>(prevEntry))
+            SignUpAuthScreen(
+                navController = navController,
+                viewModel = hiltViewModel<AuthViewModel>(prevEntry)
+            )
         }
 
         composable(NavItem.SignUpInputPassword.route) { backStackEntry ->
-            val prevEntry = remember(backStackEntry){
+            val prevEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(NavItem.InputEmail.route)
             }
-            SignUpInputPasswordScreen(navController = navController, viewModel = hiltViewModel<AuthViewModel>(prevEntry))
+            SignUpInputPasswordScreen(
+                navController = navController,
+                viewModel = hiltViewModel<AuthViewModel>(prevEntry)
+            )
         }
 
-        composable(NavItem.SignUpInputInfo.route){ backStackEntry ->
-            val prevEntry = remember(backStackEntry){
+        composable(NavItem.SignUpInputInfo.route) { backStackEntry ->
+            val prevEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(NavItem.InputEmail.route)
             }
-            SignUpInputInfoScreen(navController = navController, viewModel = hiltViewModel<AuthViewModel>(prevEntry))
+            SignUpInputInfoScreen(
+                navController = navController,
+                viewModel = hiltViewModel<AuthViewModel>(prevEntry)
+            )
         }
 
         composable(NavItem.Home.route) {
@@ -214,75 +243,133 @@ private fun NavigationGraph(
             val prevRoute = navController.previousBackStackEntry?.destination?.route
             // 리뷰 온보딩에서 진입한 경우에는 리뷰용 검색 화면에 진입하도록 함.
             if (prevRoute == NavItem.BookReviewOnboarding.route) {
-                val prevEntry = remember(backStackEntry){
+                val prevEntry = remember(backStackEntry) {
                     navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
                 }
-                BookSearchScreenAtReview(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
+                BookSearchScreenAtReview(
+                    navController = navController,
+                    viewModel = hiltViewModel<BookReviewViewModel>(prevEntry)
+                )
             } else {
                 BookSearchScreen(navController = navController)
             }
         }
-        composable(NavItem.BookDetail.route) { backStackEntry ->
-            val prevEntry = remember(backStackEntry){
-                navController.getBackStackEntry(NavItem.BookSearch.route)
+        composable(
+            NavItem.BookDetail.route,
+            arguments = listOf(navArgument("isbn") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val isbn = backStackEntry.arguments?.getString("isbn") ?: ""
+            if (isbn != "{isbn}") {
+                val bookInfoViewModel = hiltViewModel<BookDetailViewModel>()
+                bookInfoViewModel.onEvent(BookDetailEvents.BookSelected(isbn = isbn))
+
+                BookDetailScreen(
+                    navController = navController,
+                    viewModel = bookInfoViewModel
+                )
             }
-            BookDetailScreen(navController = navController, viewModel = hiltViewModel<BookInfoViewModel>(prevEntry))
         }
-        composable(NavItem.BookNearLibraryMap.route) { backStackEntry ->
-            val prevEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(NavItem.BookSearch.route)
-            }
-            BookNearLibraryMapScreen(navController = navController, viewModel = hiltViewModel<BookInfoViewModel>(prevEntry))
+
+        composable(
+            NavItem.BookNearLibraryMap.route,
+            arguments = listOf(
+                navArgument("isbn") { type = NavType.StringType },
+                navArgument("title") { type = NavType.StringType },
+                navArgument("author") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val isbn = backStackEntry.arguments?.getString("isbn") ?: ""
+            val title = backStackEntry.arguments?.getString("title") ?: ""
+            val author = backStackEntry.arguments?.getString("author") ?: ""
+
+            val libraryViewModel = hiltViewModel<LibraryViewModel>()
+            libraryViewModel.onEvent(
+                LibraryEvents.OnBookSelected(
+                    isbn = isbn,
+                    title = title,
+                    author = author
+                )
+            )
+
+            BookNearLibraryMapScreen(navController = navController, viewModel = libraryViewModel)
         }
         composable(NavItem.BookReviewReadMap.route) {
             BookReviewReadMap(navController = navController)
         }
         composable(NavItem.BookReviewOnboarding.route) {
-            BookReviewOnboardingScreen(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>())
+            BookReviewOnboardingScreen(
+                navController = navController,
+                viewModel = hiltViewModel<BookReviewViewModel>()
+            )
         }
-        composable(NavItem.BookReviewWrite.route) { backStackEntry ->
-            val prevEntry = remember(backStackEntry){
-                navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
+        composable(NavItem.BookReviewWrite.route,
+            arguments = listOf(
+                navArgument("isbn") { type = NavType.StringType })) { backStackEntry ->
+
+            val isbn = backStackEntry.arguments?.getString("isbn") ?: ""
+            if (isbn != "{isbn}") {
+                val bookInfoViewModel = hiltViewModel<BookReviewViewModel>()
+                bookInfoViewModel.onEvent(BookReviewEvents.SearchResultItemsSelected(isbn = isbn))
+
+                BookReviewWriteScreen(
+                    navController = navController,
+                    viewModel = bookInfoViewModel
+                )
+            }else{
+                val prevEntry = remember(backStackEntry) {
+                    navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
+                }
+                BookReviewWriteScreen(
+                    navController = navController,
+                    viewModel = hiltViewModel<BookReviewViewModel>(prevEntry)
+                )
             }
-            BookReviewWriteScreen(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
         }
         composable(NavItem.BookReviewLocation.route) { backStackEntry ->
-            val prevEntry = remember(backStackEntry){
-                navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
+            val prevEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(NavItem.BookReviewWrite.route)
             }
-            BookReviewLocationScreen(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
+            BookReviewLocationScreen(
+                navController = navController,
+                viewModel = hiltViewModel<BookReviewViewModel>(prevEntry)
+            )
         }
         composable(NavItem.BookReviewLocationMap.route) { backStackEntry ->
-            val prevEntry = remember(backStackEntry){
-                navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
+            val prevEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(NavItem.BookReviewWrite.route)
             }
-            BookReviewLocationMapScreen(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
+            BookReviewLocationMapScreen(
+                navController = navController,
+                viewModel = hiltViewModel<BookReviewViewModel>(prevEntry)
+            )
         }
         composable(NavItem.BookReviewComplete.route) { backStackEntry ->
-            val prevEntry = remember(backStackEntry){
-                navController.getBackStackEntry(NavItem.BookReviewOnboarding.route)
+            val prevEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(NavItem.BookReviewWrite.route)
             }
-            BookReviewCompleteScreen(navController = navController, viewModel = hiltViewModel<BookReviewViewModel>(prevEntry))
+            BookReviewCompleteScreen(
+                navController = navController,
+                viewModel = hiltViewModel<BookReviewViewModel>(prevEntry)
+            )
         }
     }
 }
 
 
 sealed class NavItem(val route: String) {
-    data object Splash: NavItem("splash")
-    data object InputEmail: NavItem("input_email")
-    data object InputPassword: NavItem("input_password")
-    data object SignUpAuth: NavItem("sign_up_auth")
-    data object SignUpInputPassword: NavItem("sign_up_input_password")
-    data object SignUpInputInfo: NavItem("sign_up_input_info")
+    data object Splash : NavItem("splash")
+    data object InputEmail : NavItem("input_email")
+    data object InputPassword : NavItem("input_password")
+    data object SignUpAuth : NavItem("sign_up_auth")
+    data object SignUpInputPassword : NavItem("sign_up_input_password")
+    data object SignUpInputInfo : NavItem("sign_up_input_info")
     data object Home : NavItem("home")
     data object Menu : NavItem("menu")
     data object BookSearch : NavItem("book_search")
-    data object BookDetail : NavItem("book_detail")
-    data object BookNearLibraryMap : NavItem("book_near_library_map")
+    data object BookDetail : NavItem("book_detail/{isbn}")
+    data object BookNearLibraryMap : NavItem("book_near_library_map/{isbn}/{title}/{author}")
     data object BookReviewReadMap : NavItem("book_review_read_map")
     data object BookReviewOnboarding : NavItem("book_review_onboarding")
-    data object BookReviewWrite : NavItem("book_review_write")
+    data object BookReviewWrite : NavItem("book_review_write/{isbn}")
     data object BookReviewLocation : NavItem("book_review_location")
     data object BookReviewLocationMap : NavItem("book_review_location_map")
     data object BookReviewComplete : NavItem("book_review_complete")

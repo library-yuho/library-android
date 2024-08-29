@@ -17,29 +17,7 @@ data class BookInfoState(
         resultList = listOf()
     ),
 
-    // 선택된 책
-    val selectedBook: BookInfoModel? = null,
-    var selectedBookReviewList: List<ReviewItem> = listOf(),
-    var reviewOrder: ReviewOrder = ReviewOrder.RECENT,
-    var isNoContentExcluded: Boolean = false,
-    var isSpoilerExcluded: Boolean = false,
-
-    // 주변 도서관
-    var currLocation: LatLng? = null,
-    var nearLibraryList: List<LibraryItem> = listOf(),
-    var selectedLibrary: LibraryItem? = null,
-
-    // 경로
-    val pedestrianPathList: List<LatLng> = listOf(),
-
     // 로딩
     val isLoading: Boolean = false,
     val isSearchLoading: Boolean = false,
 )
-
-enum class ReviewOrder(val textId: Int){
-    RECENT(R.string.book_detail_order_recent),
-    PAST(R.string.book_detail_order_past),
-    HIGH_RATING(R.string.book_detail_order_high_rating),
-    LOW_RATING(R.string.book_detail_order_low_rating)
-}

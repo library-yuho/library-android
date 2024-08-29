@@ -82,8 +82,10 @@ fun BookSearchScreenAtReview(
                 onResultItemClick = { result ->
                     focusManager.clearFocus()
                     keyboardController?.hide()
-                    viewModel.onEvent(BookReviewEvents.SearchResultItemsSelected(result))
-                    navController.navigate(NavItem.BookReviewWrite.route)
+                    if(result.isbn.isNotEmpty()){
+                        viewModel.onEvent(BookReviewEvents.SearchResultItemsSelected(result.isbn))
+                        navController.navigate(NavItem.BookReviewWrite.route)
+                    }
                 }
             )
         }

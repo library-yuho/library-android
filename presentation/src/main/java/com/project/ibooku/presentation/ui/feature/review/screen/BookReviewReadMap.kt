@@ -1,4 +1,4 @@
-package com.project.ibooku.presentation.ui.feature.map
+package com.project.ibooku.presentation.ui.feature.review.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -49,7 +49,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -66,6 +65,7 @@ import com.naver.maps.map.overlay.OverlayImage
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.common.Datetime
 import com.project.ibooku.presentation.items.ReviewItem
+import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
 import com.project.ibooku.presentation.ui.base.StarRatingBar
 import com.project.ibooku.presentation.ui.feature.review.BookReviewEvents
@@ -113,15 +113,14 @@ fun BookReviewReadMap(
 
             val state = viewModel.state.collectAsStateWithLifecycle()
 
-            var isSheetOpen by rememberSaveable {
-                mutableStateOf(false)
-            }
             val sheetState =
                 rememberModalBottomSheetState(skipPartiallyExpanded = false)
 
-            Box(modifier = Modifier
-                .systemBarsPadding()
-                .padding(innerPadding)) {
+            Box(
+                modifier = Modifier
+                    .systemBarsPadding()
+                    .padding(innerPadding)
+            ) {
                 NaverMap(
                     modifier = Modifier.fillMaxSize(),
                     locationSource = rememberFusedLocationSource(),
@@ -168,6 +167,13 @@ fun BookReviewReadMap(
                             .wrapContentHeight(),
                         onDismiss = {
                             viewModel.onEvent(BookReviewEvents.RefreshSelectedReview)
+                        },
+                        onBookDetail = { isbn ->
+                            if(isbn.isNotEmpty()){
+                                viewModel.onEvent(BookReviewEvents.RefreshSelectedReview)
+                                val route = NavItem.BookDetail.route.replace("{isbn}", isbn)
+                                navController.navigate(route)
+                            }
                         })
                 }
             }
@@ -182,7 +188,8 @@ fun ReviewBottomSheet(
     sheetState: SheetState,
     reviewItem: ReviewItem,
     modifier: Modifier = Modifier,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onBookDetail: (String) -> Unit
 ) {
     var contentHeight by remember { mutableStateOf(0.dp) }
 
@@ -381,7 +388,10 @@ fun ReviewBottomSheet(
                     .weight(1f)
                     .clip(shape = RoundedCornerShape(10.dp))
                     .background(SkyBlue10)
-                    .clickable { }) {
+                    .clickable {
+                        onDismiss()
+                        onBookDetail(reviewItem.isbn)
+                    }) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

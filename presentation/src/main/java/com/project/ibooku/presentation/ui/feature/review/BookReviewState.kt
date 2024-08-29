@@ -15,7 +15,7 @@ data class BookReviewState(
     ),
 
     // 리뷰 작성
-    var selectedBook: KeywordSearchResultItem? = null,
+    var isbn: String? = null,
     var rating: Double = 5.0,
     var review: String = "",
     var isSpoiler: Boolean? = null,
