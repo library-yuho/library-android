@@ -12,5 +12,5 @@ object Domain {
 }
 
 object UrlLink {
-    const val CENTRAL_HOMEPAGE_URL = "http://ibooku.duckdns.org:8080/"
+    const val CENTRAL_HOMEPAGE_URL = "https://www.nl.go.kr/"
 }

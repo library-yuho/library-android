@@ -8,11 +8,13 @@ import com.project.ibooku.presentation.items.ReviewItem
 data class BookReviewState(
     // 검색
     var searchKeyword: String = "",
+    var recentKeywordList: List<String> = listOf(),
     var relatedKeywordList: List<String> = listOf(),
     var searchResult: KeywordSearchResultModel = KeywordSearchResultModel(
         searchedKeyword = "",
         resultList = listOf()
     ),
+    var isSearched: Boolean = false,
 
     // 리뷰 작성
     var isbn: String? = null,

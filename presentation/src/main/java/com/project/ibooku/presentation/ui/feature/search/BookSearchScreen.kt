@@ -1,5 +1,7 @@
 package com.project.ibooku.presentation.ui.feature.search
 
+import android.content.Intent
+import android.net.Uri
 import android.text.Html
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -26,6 +28,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Close
@@ -36,13 +40,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +58,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
@@ -60,6 +68,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -80,7 +90,9 @@ import com.project.ibooku.domain.model.external.KeywordSearchResultModel
 import com.project.ibooku.presentation.R
 import com.project.ibooku.presentation.ui.NavItem
 import com.project.ibooku.presentation.ui.StatusBarColorsTheme
+import com.project.ibooku.presentation.ui.base.BaseDialog
 import com.project.ibooku.presentation.ui.theme.Black
+import com.project.ibooku.presentation.ui.theme.DefaultStyle
 import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray50
 import com.project.ibooku.presentation.ui.theme.Gray70
@@ -98,66 +110,89 @@ fun BookSearchScreen(
     navController: NavHostController,
     viewModel: BookInfoViewModel = hiltViewModel()
 ) {
+    var popupState by remember {
+        mutableStateOf(false)
+    }
+
     StatusBarColorsTheme()
 
     IbookuTheme {
-        Scaffold(modifier = Modifier.fillMaxSize()) {
-            val bookSearchState = viewModel.state.collectAsStateWithLifecycle()
-            val focusManager = LocalFocusManager.current
-            val keyboardController = LocalSoftwareKeyboardController.current
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(modifier = Modifier.fillMaxSize()) {
+                val bookSearchState = viewModel.state.collectAsStateWithLifecycle()
+                val focusManager = LocalFocusManager.current
+                val keyboardController = LocalSoftwareKeyboardController.current
 
-            BackHandler {
-                if (bookSearchState.value.searchKeyword.isEmpty()) {
-                    navController.popBackStack()
-                } else {
-                    viewModel.onEvent(BookInfoEvents.InfoTextChanged(""))
+                BackHandler {
+                    if (bookSearchState.value.searchKeyword.isEmpty()) {
+                        navController.popBackStack()
+                    } else {
+                        viewModel.onEvent(BookInfoEvents.InfoTextChanged(""))
+                    }
                 }
-            }
-            BookSearchCommonScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(White)
-                    .padding(it),
-                relatedKeywordList = bookSearchState.value.relatedKeywordList,
-                searchKeyword = bookSearchState.value.searchKeyword,
-                searchResult = bookSearchState.value.searchResult,
-                isSearchLoading = bookSearchState.value.isSearchLoading,
-                onBackPressed = {
-                    navController.popBackStack()
-                },
-                onSearch = {
-                    if (bookSearchState.value.searchKeyword.isNotEmpty()) {
+                BookSearchCommonScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(White)
+                        .padding(it),
+                    recentKeywordList = bookSearchState.value.recentKeywordList,
+                    relatedKeywordList = bookSearchState.value.relatedKeywordList,
+                    searchKeyword = bookSearchState.value.searchKeyword,
+                    searchResult = bookSearchState.value.searchResult,
+                    isSearchLoading = bookSearchState.value.isSearchLoading,
+                    isSearched = bookSearchState.value.isSearched,
+                    onBackPressed = {
+                        navController.popBackStack()
+                    },
+                    onSearch = {
+                        if (bookSearchState.value.searchKeyword.isNotEmpty()) {
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                        }
+                        viewModel.onEvent(BookInfoEvents.InfoKeyword)
+                    },
+                    onRecentKeywordSelected = { keyword ->
                         focusManager.clearFocus()
                         keyboardController?.hide()
-                    }
-                    viewModel.onEvent(BookInfoEvents.InfoKeyword)
-                },
-                onChipSelected = { keyword ->
-                    focusManager.clearFocus()
-                    keyboardController?.hide()
-                    viewModel.onEvent(
-                        BookInfoEvents.InfoWithSelectionSomething(keyword)
-                    )
-                },
-                onTextChanged = { keyword ->
-                    viewModel.onEvent(BookInfoEvents.InfoTextChanged(keyword))
-                },
-                onRelatedKeywordClick = { relatedKeyword ->
-                    focusManager.clearFocus()
-                    keyboardController?.hide()
-                    viewModel.onEvent(
-                        BookInfoEvents.InfoWithSelectionSomething(
-                            relatedKeyword
+                        viewModel.onEvent(
+                            BookInfoEvents.InfoWithSelectionSomething(keyword)
                         )
-                    )
-                },
-                onResultItemClick = { result ->
-                    if(result.isbn.isNotEmpty()){
-                        val route = NavItem.BookDetail.route.replace("{isbn}", result.isbn)
-                        navController.navigate(route)
+                    },
+                    onRecentKeywordRemoved = { keyword ->
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                        viewModel.onEvent(
+                            BookInfoEvents.InfoRecentKeywordRemoved(keyword)
+                        )
+                    },
+                    onTextChanged = { keyword ->
+                        viewModel.onEvent(BookInfoEvents.InfoTextChanged(keyword))
+                    },
+                    onRelatedKeywordClick = { relatedKeyword ->
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                        viewModel.onEvent(
+                            BookInfoEvents.InfoWithSelectionSomething(
+                                relatedKeyword
+                            )
+                        )
+                    },
+                    onResultItemClick = { result ->
+                        if (result.isbn.isNotEmpty()) {
+                            val route = NavItem.BookDetail.route.replace("{isbn}", result.isbn)
+                            navController.navigate(route)
+                        } else {
+                            popupState = true
+                        }
                     }
-                }
-            )
+                )
+            }
+
+            if (popupState) {
+                BaseDialog(
+                    title = stringResource(id = R.string.error_title_2),
+                    onPositiveRequest = { popupState = false })
+            }
         }
     }
 }
@@ -182,8 +217,10 @@ fun BookSearchScreenPreview() {
         )
 
         BookSearchBodyNoKeyword(
+            recentKeywordList = listOf(),
             modifier = Modifier.weight(1f),
-            onChipSelected = {}
+            onRecentKeywordSelected = {},
+            onRecentKeywordRemoved = {},
         )
     }
 }
@@ -191,14 +228,17 @@ fun BookSearchScreenPreview() {
 @Composable
 fun BookSearchCommonScreen(
     searchKeyword: String,
+    recentKeywordList: List<String>,
     relatedKeywordList: List<String>,
     searchResult: KeywordSearchResultModel,
     isSearchLoading: Boolean,
+    isSearched: Boolean,
     modifier: Modifier = Modifier,
     onBackPressed: () -> Unit,
     onTextChanged: (String) -> Unit,
     onSearch: () -> Unit,
-    onChipSelected: (String) -> Unit,
+    onRecentKeywordSelected: (String) -> Unit,
+    onRecentKeywordRemoved: (String) -> Unit,
     onRelatedKeywordClick: (String) -> Unit,
     onResultItemClick: (KeywordSearchResultItem) -> Unit
 ) {
@@ -214,18 +254,37 @@ fun BookSearchCommonScreen(
                 onSearch = onSearch
             )
             Box(modifier = Modifier.weight(1f)) {
-                if (searchResult.resultList.isEmpty()) {
+                if (!isSearched) {
                     BookSearchBodyNoKeyword(
+                        recentKeywordList = recentKeywordList,
                         modifier = Modifier.fillMaxSize(),
-                        onChipSelected = onChipSelected
+                        onRecentKeywordSelected = onRecentKeywordSelected,
+                        onRecentKeywordRemoved = onRecentKeywordRemoved
                     )
                 } else {
-                    BookSearchBodySearchResultList(
-                        modifier = Modifier.fillMaxSize(),
-                        searchedKeyword = searchResult.searchedKeyword,
-                        searchResultList = searchResult.resultList,
-                        onResultItemClick = onResultItemClick
-                    )
+                    if (searchResult.resultList.isNotEmpty()) {
+                        BookSearchBodySearchResultList(
+                            modifier = Modifier.fillMaxSize(),
+                            searchedKeyword = searchResult.searchedKeyword,
+                            searchResultList = searchResult.resultList,
+                            onResultItemClick = onResultItemClick
+                        )
+                    } else {
+                        val context = LocalContext.current
+                        BookSearchBodySearchNoResult(
+                            modifier = Modifier.fillMaxSize(),
+                            onCsClick = {
+                                val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                                    // 이메일만 처리할 수 있는 인텐트를 설정합니다.
+                                    data = Uri.parse("mailto:")
+                                    // 받는 사람 이메일 주소
+                                    putExtra(Intent.EXTRA_EMAIL, arrayOf("rigizer@gmail.com"))
+
+                                }
+                                context.startActivity(emailIntent)
+                            }
+                        )
+                    }
                 }
                 if (relatedKeywordList.isNotEmpty()) {
                     BookSearchBodyRelatedKeywordList(
@@ -305,20 +364,12 @@ private fun BookSearchScreenHeader(
                 )
             }
 
-            val focusRequester = remember { FocusRequester() }
-
-            LaunchedEffect(Unit) {
-                delay(200)
-                focusRequester.requestFocus()
-            }
-
             val scrollState = rememberScrollState()
             val coroutineScope = rememberCoroutineScope()
 
             TextField(
                 modifier = Modifier
                     .weight(1f)
-                    .focusRequester(focusRequester)
                     .horizontalScroll(scrollState),
                 value = searchKeyword,
                 onValueChange = { value ->
@@ -335,6 +386,15 @@ private fun BookSearchScreenHeader(
                     focusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent,
                     cursorColor = SkyBlue10,
+                ),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        onSearch()
+                    }
                 ),
                 textStyle = TextStyle(
                     fontSize = 16.sp,
@@ -377,28 +437,35 @@ private fun BookSearchScreenHeader(
 
 @Composable
 private fun BookSearchBodyNoKeyword(
+    recentKeywordList: List<String>,
     modifier: Modifier,
-    onChipSelected: (String) -> Unit
+    onRecentKeywordSelected: (String) -> Unit,
+    onRecentKeywordRemoved: (String) -> Unit
 ) {
     Column(
         modifier = modifier
             .padding(horizontal = 20.dp, vertical = 15.dp)
     ) {
-        BookSearchBodyRecentKeyword(onRecentKeywordSelected = onChipSelected)
+        BookSearchBodyRecentKeyword(
+            recentKeywordList = recentKeywordList,
+            onRecentKeywordSelected = onRecentKeywordSelected,
+            onRecentKeywordRemoved = onRecentKeywordRemoved
+        )
         Spacer(modifier = Modifier.height(18.dp))
-        BookSearchBodyPopularKeyword(onPopularKeywordSelected = onChipSelected)
+        BookSearchBodyPopularKeyword(onPopularKeywordSelected = onRecentKeywordSelected)
     }
 }
 
 @Composable
 private fun BookSearchBodyRecentKeyword(
+    recentKeywordList: List<String>,
     modifier: Modifier = Modifier,
-    onRecentKeywordSelected: (String) -> Unit
+    onRecentKeywordSelected: (String) -> Unit,
+    onRecentKeywordRemoved: (String) -> Unit
 ) {
     Column(modifier = modifier) {
-        val keywordList = listOf<String>("아몬드", "Jetpack Compose", "알퐁스 도데")
 
-        if (keywordList.isNotEmpty()) {
+        if (recentKeywordList.isNotEmpty()) {
             Text(
                 text = stringResource(id = R.string.search_book_recent_keyword_title),
                 fontSize = 16.sp,
@@ -410,7 +477,7 @@ private fun BookSearchBodyRecentKeyword(
                 contentPadding = PaddingValues(vertical = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                items(items = keywordList) { keyword ->
+                items(items = recentKeywordList) { keyword ->
                     Row(
                         modifier = Modifier.wrapContentSize(),
                         verticalAlignment = Alignment.CenterVertically
@@ -420,7 +487,11 @@ private fun BookSearchBodyRecentKeyword(
                         Spacer(modifier = Modifier.width(4.dp))
 
                         Icon(
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier
+                                .size(16.dp)
+                                .clickable {
+                                    onRecentKeywordRemoved(keyword)
+                                },
                             imageVector = Icons.Default.Close,
                             tint = Gray50,
                             contentDescription = null
@@ -487,15 +558,16 @@ private fun ChipItem(
     color: Color = Gray50,
     onChipSelected: (String) -> Unit
 ) {
-    Card(modifier = Modifier
+    Card(modifier = modifier
         .border(width = 1.5.dp, color = color, shape = RoundedCornerShape(20.dp))
         .clip(shape = RoundedCornerShape(20.dp))
         .clickable { onChipSelected(name) }) {
         Box {
             Text(
-                modifier = modifier
+                modifier = Modifier
                     .background(White)
                     .padding(vertical = 6.dp, horizontal = 16.dp),
+                maxLines = 1,
                 text = name,
                 color = color,
                 fontWeight = FontWeight.Bold,
@@ -590,6 +662,59 @@ fun BookSearchBodySearchResultList(
                     onResultItemClick = onResultItemClick
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun BookSearchBodySearchNoResult(
+    modifier: Modifier = Modifier,
+    onCsClick: () -> Unit
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            modifier = Modifier.padding(horizontal = 40.dp),
+            text = stringResource(id = R.string.search_book_no_result_title),
+            fontSize = 18.sp,
+            color = Gray70,
+            fontWeight = FontWeight.Bold,
+            style = DefaultStyle
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            modifier = Modifier.padding(horizontal = 40.dp),
+            text = stringResource(id = R.string.search_book_no_result_subtitle),
+            fontSize = 14.sp,
+            color = Gray30,
+            fontWeight = FontWeight.Medium,
+            style = DefaultStyle
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        TextButton(
+            modifier = Modifier
+                .width(180.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(SkyBlue10),
+            shape = RoundedCornerShape(10.dp),
+            onClick = onCsClick,
+            contentPadding = PaddingValues(horizontal = 50.dp, vertical = 10.dp)
+        ) {
+
+            Text(
+                text = stringResource(id = R.string.search_book_cs),
+                color = White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                style = DefaultStyle
+            )
         }
     }
 }

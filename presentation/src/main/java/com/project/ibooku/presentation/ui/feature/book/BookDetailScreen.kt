@@ -75,8 +75,11 @@ import com.project.ibooku.presentation.ui.base.BaseButton
 import com.project.ibooku.presentation.ui.base.BaseHeader
 import com.project.ibooku.presentation.ui.base.StarRatingBar
 import com.project.ibooku.presentation.ui.theme.Black
+import com.project.ibooku.presentation.ui.theme.DefaultStyle
+import com.project.ibooku.presentation.ui.theme.Gray20
 import com.project.ibooku.presentation.ui.theme.Gray30
 import com.project.ibooku.presentation.ui.theme.Gray50
+import com.project.ibooku.presentation.ui.theme.Gray60
 import com.project.ibooku.presentation.ui.theme.Gray70
 import com.project.ibooku.presentation.ui.theme.Gray80
 import com.project.ibooku.presentation.ui.theme.IbookuTheme
@@ -280,14 +283,34 @@ fun BookDetailScreenBody(
                     onIsSpoilerExcluded = onIsSpoilerExcluded,
                 )
             }
-
-            items(filteredReviewList) { review ->
-                BookDetailReviewItem(
-                    reviewItem = review,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                )
+            if (filteredReviewList.isNotEmpty()) {
+                items(filteredReviewList) { review ->
+                    BookDetailReviewItem(
+                        reviewItem = review,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                    )
+                }
+            } else {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(24.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Gray20),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.book_detail_no_review),
+                            color = Gray60,
+                            style = DefaultStyle
+                        )
+                    }
+                }
             }
         }
 
@@ -404,7 +427,6 @@ fun BookDetailToolBar(
                     .fillMaxWidth()
                     .padding(horizontal = 32.dp),
                 text = description,
-                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 color = Gray30,
                 fontSize = 14.sp,

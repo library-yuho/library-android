@@ -7,6 +7,7 @@ sealed class BookReviewEvents {
     data class SearchTextChanged(val newText: String) : BookReviewEvents()
     data object SearchKeyword : BookReviewEvents()
     data class SearchWithSelectionSomething(val keyword: String): BookReviewEvents()
+    data class RecentKeywordRemoved(val keyword: String): BookReviewEvents()
     data class SearchResultItemsSelected(val isbn: String): BookReviewEvents()
     data object OnBackPressedAtReviewWrite : BookReviewEvents()
     data class ReviewRatingChanged(val rating: Double): BookReviewEvents()
