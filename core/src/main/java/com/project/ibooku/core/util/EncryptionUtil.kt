@@ -14,7 +14,7 @@ object EncryptionUtil {
     // 고정된 32바이트(256비트) 키를 사용
     private val fixedKey = "your_fixed_key_32_byte_length!!!".toByteArray(Charsets.UTF_8)
 
-    fun getSecretKey(): SecretKeySpec {
+    private fun getSecretKey(): SecretKeySpec {
         return SecretKeySpec(fixedKey, ALGORITHM)
     }
 

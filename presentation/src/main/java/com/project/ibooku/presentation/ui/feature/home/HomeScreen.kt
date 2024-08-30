@@ -108,8 +108,15 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
 
     IbookuTheme {
         Scaffold(
-            bottomBar = {
-                BottomNavigationBar(navController = navController)
+            topBar = {
+                Column(modifier = Modifier.fillMaxWidth().background(SkyBlue10)) {
+                    HomeHeaderTop(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .padding(15.dp)
+                    )
+                }
             }
         ) {
             val homeState = viewModel.homeState.collectAsStateWithLifecycle()
@@ -145,7 +152,13 @@ fun HomeScreen(navController: NavHostController, viewModel: HomeViewModel = hilt
                         onWriteReviewClick = {
                             navController.navigate(NavItem.BookReviewOnboarding.route)
                         },
-                        onPopularBookClick = {}
+                        onPopularBookClick = { model ->
+                            val isbn = model.isbn
+                            if(isbn.isNotEmpty()){
+                                val route = NavItem.BookDetail.route.replace("{isbn}", isbn)
+                                navController.navigate(route)
+                            }
+                        }
                     )
                 }
 
@@ -234,14 +247,7 @@ private fun HomeHeader(modifier: Modifier = Modifier, onSearchBarClick: () -> Un
             .background(SkyBlue10)
             .padding(15.dp)
     ) {
-        HomeHeaderTop(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-        )
-
-        Spacer(modifier = Modifier.height(15.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
         HomeHeaderSearch(
             modifier = Modifier
                 .fillMaxWidth()
@@ -344,7 +350,7 @@ private fun HomeBody(
     modifier: Modifier = Modifier,
     onWriteReviewClick: () -> Unit,
     onReadReviewClick: () -> Unit,
-    onPopularBookClick: () -> Unit
+    onPopularBookClick: (PopularBooksModel) -> Unit
 ) {
     val context = LocalContext.current
     Surface(modifier = modifier.background(Color.Transparent), shape = RoundedCornerShape(16.dp)) {
@@ -390,7 +396,14 @@ private fun HomeBody(
                     }
 
                     override fun onCsClick() {
+                        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                            // 이메일만 처리할 수 있는 인텐트를 설정합니다.
+                            data = Uri.parse("mailto:")
+                            // 받는 사람 이메일 주소
+                            putExtra(Intent.EXTRA_EMAIL, arrayOf("rigizer@gmail.com"))
 
+                        }
+                        context.startActivity(emailIntent)
                     }
 
                 }
@@ -561,7 +574,7 @@ private fun HomeBodyReviewRead(modifier: Modifier = Modifier, onReadReviewClick:
 private fun HomeBodyPopularBook(
     popularBookList: List<PopularBooksModel>,
     modifier: Modifier = Modifier,
-    onPopularBookClick: () -> Unit
+    onPopularBookClick: (PopularBooksModel) -> Unit
 ) {
     Column(modifier = modifier) {
         Row(
@@ -578,16 +591,6 @@ private fun HomeBodyPopularBook(
                     color = Gray80,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                /*TODO: 날짜 바인딩 */
-                Text(
-                    text = "(24.07.24 ~ 24.07.30)",
-                    color = Gray50,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Medium
                 )
             }
 
@@ -631,7 +634,7 @@ private fun HomeBodyPopularBook(
 fun HomeBodyPopularBookItem(
     item: PopularBooksModel,
     modifier: Modifier = Modifier,
-    onPopularBookClick: () -> Unit
+    onPopularBookClick: (PopularBooksModel) -> Unit
 ) {
     Surface(
         modifier = modifier
@@ -639,7 +642,9 @@ fun HomeBodyPopularBookItem(
             .border(width = 0.5.dp, color = Gray10, RoundedCornerShape(10.dp)),
         shadowElevation = 4.dp,
         shape = RoundedCornerShape(10.dp),
-        onClick = onPopularBookClick
+        onClick = {
+            onPopularBookClick(item)
+        }
     ) {
         Row(
             modifier = Modifier

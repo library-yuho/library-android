@@ -429,8 +429,14 @@ fun LibraryBottomSheet(
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            val targetStr =
-                "${BigDecimal.valueOf(libraryItem.distance).setScale(1, RoundingMode.HALF_EVEN)}km"
+            val targetStr = if (libraryItem.distance > 1000) {
+                "${
+                    BigDecimal.valueOf(libraryItem.distance / 1000)
+                        .setScale(1, RoundingMode.HALF_EVEN)
+                }km"
+            } else {
+                "${(libraryItem.distance / 10).toInt() * 10}m"
+            }
             val distTextStr = stringResource(id = R.string.book_near_library_distance).replace(
                 "#VALUE#",
                 targetStr

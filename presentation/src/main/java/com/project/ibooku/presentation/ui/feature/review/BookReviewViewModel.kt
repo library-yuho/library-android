@@ -1,8 +1,14 @@
 package com.project.ibooku.presentation.ui.feature.review
 
+import android.content.Context
+import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.GsonBuilder
+import com.google.gson.reflect.TypeToken
 import com.naver.maps.geometry.LatLng
+import com.project.ibooku.core.preferences.PreferenceName
+import com.project.ibooku.core.preferences.UserPreferenceKeys
 import com.project.ibooku.core.util.Resources
 import com.project.ibooku.core.util.UserSetting
 import com.project.ibooku.domain.model.external.KeywordSearchResultItem
@@ -14,6 +20,7 @@ import com.project.ibooku.domain.usecase.review.WriteReviewUseCase
 import com.project.ibooku.presentation.common.Datetime
 import com.project.ibooku.presentation.items.ReviewItem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,14 +32,26 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BookReviewViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     val keywordSearchResultUseCase: KeywordSearchResultUseCase,
     val writeReviewUseCase: WriteReviewUseCase,
     val getBookSearchResultListUseCase: GetBookSearchResultListUseCase,
     val getNearReviewListUseCase: GetNearReviewListUseCase
 ) : ViewModel() {
+    private val userSharedPreferences: SharedPreferences = context.getSharedPreferences(
+        PreferenceName.USER_PREFERENCE, Context.MODE_PRIVATE
+    )
+    private val gson = GsonBuilder().create()
 
     private val _state = MutableStateFlow(BookReviewState())
     val state = _state.asStateFlow()
+
+    init {
+        val keywordList = getPrevKeywordList()
+        _state.value = _state.value.copy(
+            recentKeywordList = keywordList
+        )
+    }
 
     // 이벤트 처리를 위한 함수
     fun onEvent(event: BookReviewEvents) {
@@ -47,7 +66,8 @@ class BookReviewViewModel @Inject constructor(
                         searchResult = KeywordSearchResultModel(
                             searchedKeyword = "",
                             resultList = listOf()
-                        )
+                        ),
+                        isSearched = false
                     )
                 } else {
                     _state.value = _state.value.copy(searchKeyword = event.newText)
@@ -149,6 +169,10 @@ class BookReviewViewModel @Inject constructor(
                     selectedReview = null
                 )
             }
+
+            is BookReviewEvents.RecentKeywordRemoved -> {
+                removeKeywordInPrevKeywordList(event.keyword)
+            }
         }
     }
 
@@ -157,6 +181,7 @@ class BookReviewViewModel @Inject constructor(
      */
     private fun getKeywordSearchResult() {
         val keyword = _state.value.searchKeyword
+        saveKeywordInPrevKeywordList(keyword)
         viewModelScope.launch {
             getBookSearchResultListUseCase(keyword).collect { result ->
                 when (result) {
@@ -180,8 +205,9 @@ class BookReviewViewModel @Inject constructor(
                             _state.value = _state.value.copy(
                                 searchResult = KeywordSearchResultModel(
                                     searchedKeyword = keyword,
-                                    resultList = searchResult
-                                )
+                                    resultList = searchResult,
+                                ),
+                                isSearched = true
                             )
                         }
                     }
@@ -306,5 +332,67 @@ class BookReviewViewModel @Inject constructor(
             }
         }
     }
+
+
+    private fun saveKeywordInPrevKeywordList(keyword: String) {
+        val prevList = _state.value.recentKeywordList
+        val findIdx = prevList.indexOf(keyword)
+        val newList =
+            if (findIdx != -1) {
+                prevList.toMutableList().apply {
+                    removeAt(findIdx)
+                    add(0, keyword)
+                }
+            } else {
+                if (prevList.size < 10) {
+                    prevList.toMutableList().apply {
+                        add(0, keyword)
+                    }
+                } else {
+                    prevList.subList(prevList.size - 9, prevList.size).toMutableList().apply {
+                        add(0, keyword)
+                    }
+                }
+            }
+
+        _state.value = _state.value.copy(
+            recentKeywordList = newList
+        )
+        setPrevKeywordList(newList)
+    }
+
+    private fun removeKeywordInPrevKeywordList(keyword: String){
+        val prevList = _state.value.recentKeywordList
+        val findIdx = prevList.indexOf(keyword)
+        val newList = if(findIdx != -1){
+            prevList.toMutableList().apply {
+                removeAt(findIdx)
+            }
+        }else{
+            return
+        }
+        _state.value = _state.value.copy(
+            recentKeywordList = newList
+        )
+        setPrevKeywordList(newList)
+    }
+
+    private fun getPrevKeywordList(): List<String> {
+        val strList =
+            userSharedPreferences.getString(UserPreferenceKeys.SEARCH_KEYWORD_LIST, "") ?: ""
+        return if (strList.isNotEmpty()) {
+            val type = object : TypeToken<List<String>>() {}.type
+            gson.fromJson(strList, type)
+        } else {
+            listOf()
+        }
+    }
+
+    private fun setPrevKeywordList(list: List<String>) {
+        val convertData = gson.toJson(list)
+        userSharedPreferences.edit().putString(UserPreferenceKeys.SEARCH_KEYWORD_LIST, convertData).apply()
+    }
+
 }
+
 
