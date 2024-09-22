@@ -33,27 +33,22 @@ class SplashViewModel @Inject constructor(
         val preferencesEmail = userSharedPreferences.getString(UserPreferenceKeys.EMAIL, null)
         if(preferencesEmail != null){
             UserSetting.email = EncryptionUtil.decrypt(preferencesEmail)
-            Log.d("TAG", ": ${UserSetting.email}")
         }
         val preferencesNickname = userSharedPreferences.getString(UserPreferenceKeys.NICKNAME, null)
         if(preferencesNickname != null){
             UserSetting.nickname = EncryptionUtil.decrypt(preferencesNickname)
-            Log.d("TAG", ": ${UserSetting.nickname}")
         }
         val preferencesBirth = userSharedPreferences.getString(UserPreferenceKeys.BIRTH, null)
         if(preferencesBirth != null){
             UserSetting.birth = EncryptionUtil.decrypt(preferencesBirth)
-            Log.d("TAG", ": ${UserSetting.birth}")
         }
         val preferencesGender = userSharedPreferences.getString(UserPreferenceKeys.GENDER, null)
         if(preferencesGender != null){
             UserSetting.gender = EncryptionUtil.decrypt(preferencesGender)
-            Log.d("TAG", ": ${UserSetting.gender}")
         }
         val preferencesAutoLogin = userSharedPreferences.getBoolean(UserPreferenceKeys.AUTO_LOGIN, false)
         if(preferencesGender != null){
             UserSetting.isAutoLogin = preferencesAutoLogin
-            Log.d("TAG", ": ${UserSetting.isAutoLogin}")
         }
 
         requestSplashLogin()
