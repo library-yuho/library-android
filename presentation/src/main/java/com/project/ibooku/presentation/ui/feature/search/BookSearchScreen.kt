@@ -519,19 +519,19 @@ private fun BookSearchBodyPopularKeyword(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        val popularKeyword = listOf<String>(
-            "리틀 라이프",
-            "만복이네 떡집",
-            "의사",
-            "교과서",
-            "전조등",
-            "보편 교양",
-            "롤링 선더 러브",
-            "김기태",
-            "플러스",
-            "에이미",
-            "과학",
-            "어린이"
+        val popularKeyword = listOf(
+            "역사",
+            "빠더너스",
+            "구슬",
+            "오백 년째 열다섯",
+            "라플라스의 마녀",
+            "마녀와의 7일",
+            "마을",
+            "타우누스",
+            "마력의 태동",
+            "우리가 겨울을 지나온 방식",
+            "독일",
+            "보덴슈타인"
         )
         FlowRow(
             modifier = Modifier
